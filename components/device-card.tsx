@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Monitor, Cpu, Globe, Clock, MessageSquare } from "lucide-react"
-import type { Device } from "../lib/api/types"
+import type { Device } from "../app/api/types"
 import { CyberStatusBadge } from "./cyber-status-badge"
 import { formatTimeAgo } from "../lib/utils/time"
 

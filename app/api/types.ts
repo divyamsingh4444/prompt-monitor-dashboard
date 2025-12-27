@@ -61,3 +61,4 @@ export interface DashboardStats {
   inactive_devices: number;
   prompts_today: number;
 }
+

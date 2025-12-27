@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { apiClient } from "../lib/api/client"
-import type { Device, DashboardStats } from "../lib/api/types"
+import { api } from "../lib/utils/api"
+import type { Device, DashboardStats } from "./api/types"
 import { DashboardHeader } from "../components/dashboard-header"
 import { DeviceCard } from "../components/device-card"
 import { useAutoRefresh } from "../lib/hooks/use-auto-refresh"
@@ -21,7 +21,10 @@ export default function DashboardPage() {
 
   const fetchData = async () => {
     try {
-      const [devicesData, statsData] = await Promise.all([apiClient.getDevices(), apiClient.getDashboardStats()])
+      const [devicesData, statsData] = await Promise.all([
+        api<Device[]>("/api/devices"),
+        api<DashboardStats>("/api/stats"),
+      ])
       setDevices(devicesData)
       setStats(statsData)
     } catch (error) {

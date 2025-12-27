@@ -1,7 +1,7 @@
 "use client"
 
 import { use, useState, useEffect } from "react"
-import { apiClient } from "../../../lib/api/client"
+import { api } from "../../../lib/utils/api"
 import { useAutoRefresh } from "../../../lib/hooks/use-auto-refresh"
 import {
   ChevronLeft,
@@ -19,7 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui
 import { CyberStatusBadge } from "../../../components/cyber-status-badge"
 import { JsonDetailModal } from "../../../components/json-detail-modal"
 import { formatTimeAgo, formatTimestamp } from "../../../lib/utils/time"
-import type { Device, DeviceEvent, Prompt, Alert } from "../../../lib/api/types"
+import type { Device, DeviceEvent, Prompt, Alert } from "../../api/types"
 
 export default function DeviceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -37,12 +37,27 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ id: str
 
   const fetchDeviceData = async () => {
     try {
-      const [deviceData, eventsData, promptsData, alertsData] = await Promise.all([
-        apiClient.getDevice(id),
-        apiClient.getDeviceEvents(id),
-        apiClient.getDevicePrompts(id),
-        apiClient.getDeviceAlerts(id),
+      // Get events first (used for both events and alerts)
+      const [deviceData, eventsResponse, promptsData] = await Promise.all([
+        api<Device>(`/api/devices/${id}`),
+        api<{ events: DeviceEvent[]; stats: object }>(`/api/devices/${id}/events`),
+        api<Prompt[]>(`/api/devices/${id}/prompts`),
       ])
+      
+      const eventsData = eventsResponse.events || []
+      
+      // Filter events to get alerts
+      const alertsData: Alert[] = eventsData
+        .filter((event) => event.severity === "warning" || event.severity === "critical")
+        .map((event) => ({
+          id: event.id,
+          device_id: event.device_id,
+          alert_type: event.event_type,
+          severity: event.severity as "warning" | "critical",
+          matched_pattern: event.description,
+          timestamp: event.timestamp,
+        }))
+      
       setDevice(deviceData)
       setEvents(eventsData)
       setPrompts(promptsData)
