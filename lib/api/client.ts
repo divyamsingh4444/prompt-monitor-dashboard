@@ -34,6 +34,21 @@ class ApiClient {
     return response.json();
   }
 
+  // Transform API device response to frontend Device type
+  private transformDevice(apiDevice: any): Device {
+    return {
+      id: apiDevice.device_id,
+      hostname: apiDevice.hostname,
+      status: apiDevice.status === "offline" ? "inactive" : apiDevice.status,
+      os: apiDevice.os || "Unknown",
+      ip_address: apiDevice.ips?.[0] || "N/A",
+      last_seen: apiDevice.last_heartbeat,
+      browser_count: apiDevice.browsers?.length || 0,
+      prompts_today: apiDevice.prompts_today || 0,
+      total_prompts: apiDevice.prompt_count || 0,
+    };
+  }
+
   // Dashboard endpoints
   async getDashboardStats(): Promise<DashboardStats> {
     return this.fetch<DashboardStats>("/admin/stats");
@@ -46,11 +61,13 @@ class ApiClient {
     if (status) params.append("status", status);
 
     const query = params.toString() ? `?${params.toString()}` : "";
-    return this.fetch<Device[]>(`/admin/devices${query}`);
+    const apiDevices = await this.fetch<any[]>(`/admin/devices${query}`);
+    return apiDevices.map((d) => this.transformDevice(d));
   }
 
   async getDevice(deviceId: string): Promise<Device> {
-    return this.fetch<Device>(`/admin/devices/${deviceId}`);
+    const apiDevice = await this.fetch<any>(`/admin/devices/${deviceId}`);
+    return this.transformDevice(apiDevice);
   }
 
   // Prompt endpoints
