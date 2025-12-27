@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase/server";
+import { supabase } from "@/lib/supabase";
 import type { BlockedPrompt } from "@/app/api/types";
 
 export async function GET(
@@ -11,7 +11,7 @@ export async function GET(
 
     // Use compliance_events table for blocked prompts
     // Filter for events that might represent blocked prompts
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabase
       .from("compliance_events")
       .select("*")
       .eq("device_id", id)

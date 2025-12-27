@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase/server";
+import { supabase } from "@/lib/supabase";
 
 export async function GET() {
   try {
     // Get total devices count
-    const { count: totalDevices, error: devicesError } = await supabaseAdmin
+    const { count: totalDevices, error: devicesError } = await supabase
       .from("devices")
       .select("*", { count: "exact", head: true });
 
@@ -14,7 +14,7 @@ export async function GET() {
     const fiveMinutesAgo = new Date();
     fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
 
-    const { count: activeDevices, error: activeError } = await supabaseAdmin
+    const { count: activeDevices, error: activeError } = await supabase
       .from("devices")
       .select("*", { count: "exact", head: true })
       .gte("last_heartbeat", fiveMinutesAgo.toISOString());
@@ -31,7 +31,7 @@ export async function GET() {
 
     // Count prompts where timestamp >= today's midnight
     // Note: timestamp is stored as bigint (milliseconds since epoch)
-    const { count: promptsToday, error: promptsError } = await supabaseAdmin
+    const { count: promptsToday, error: promptsError } = await supabase
       .from("prompts")
       .select("*", { count: "exact", head: true })
       .gte("timestamp", todayTimestamp.toString());

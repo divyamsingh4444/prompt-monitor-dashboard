@@ -1,107 +1,116 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase/server'
-import type { Device } from '@/app/api/types'
+import { NextRequest, NextResponse } from "next/server";
+import { supabase } from "@/lib/supabase";
+import type { Device } from "@/app/api/types";
 
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams
-    const search = searchParams.get('search')
-    const status = searchParams.get('status')
+    const searchParams = request.nextUrl.searchParams;
+    const search = searchParams.get("search");
+    const status = searchParams.get("status");
 
     // Get all devices
-    const { data: devicesData, error: devicesError } = await supabaseAdmin
-      .from('devices')
-      .select('*')
+    const { data: devicesData, error: devicesError } = await supabase
+      .from("devices")
+      .select("*");
 
-    if (devicesError) throw devicesError
+    if (devicesError) throw devicesError;
 
     // Get prompts counts for today and total for each device
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const todayTimestamp = today.getTime()
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayTimestamp = today.getTime();
 
-    const { data: promptsData, error: promptsError } = await supabaseAdmin
-      .from('prompts')
-      .select('device_id, timestamp')
+    const { data: promptsData, error: promptsError } = await supabase
+      .from("prompts")
+      .select("device_id, timestamp");
 
-    if (promptsError) throw promptsError
+    if (promptsError) throw promptsError;
 
     // Calculate prompts counts per device
-    const promptsCounts = new Map<string, { today: number; total: number }>()
+    const promptsCounts = new Map<string, { today: number; total: number }>();
     promptsData?.forEach((p: any) => {
-      if (!p.device_id) return
-      const counts = promptsCounts.get(p.device_id) || { today: 0, total: 0 }
-      counts.total++
+      if (!p.device_id) return;
+      const counts = promptsCounts.get(p.device_id) || { today: 0, total: 0 };
+      counts.total++;
       // Convert timestamp to number if it's a string (Supabase bigint can come as string)
-      const timestamp = typeof p.timestamp === 'string' ? parseInt(p.timestamp, 10) : p.timestamp
+      const timestamp =
+        typeof p.timestamp === "string"
+          ? parseInt(p.timestamp, 10)
+          : p.timestamp;
       if (timestamp && timestamp >= todayTimestamp) {
-        counts.today++
+        counts.today++;
       }
-      promptsCounts.set(p.device_id, counts)
-    })
+      promptsCounts.set(p.device_id, counts);
+    });
 
     // Transform database devices to frontend Device type
     let devices: Device[] = (devicesData || []).map((d: any) => {
       // Determine status based on last_heartbeat (active if within last 5 minutes)
-      const fiveMinutesAgo = new Date()
-      fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5)
-      const lastHeartbeat = d.last_heartbeat ? new Date(d.last_heartbeat) : null
-      const isActive = lastHeartbeat && lastHeartbeat >= fiveMinutesAgo
-      const deviceStatus = isActive ? 'active' : 'inactive'
+      const fiveMinutesAgo = new Date();
+      fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
+      const lastHeartbeat = d.last_heartbeat
+        ? new Date(d.last_heartbeat)
+        : null;
+      const isActive = lastHeartbeat && lastHeartbeat >= fiveMinutesAgo;
+      const deviceStatus = isActive ? "active" : "inactive";
 
       // Extract IP from JSONB array
-      const ipAddress = Array.isArray(d.ips) && d.ips.length > 0 ? d.ips[0] : 'N/A'
-      
+      const ipAddress =
+        Array.isArray(d.ips) && d.ips.length > 0 ? d.ips[0] : "N/A";
+
       // Count browsers from JSONB array
-      const browserCount = Array.isArray(d.browsers) ? d.browsers.length : 0
+      const browserCount = Array.isArray(d.browsers) ? d.browsers.length : 0;
 
       // Get prompts counts
-      const counts = promptsCounts.get(d.device_id) || { today: 0, total: 0 }
+      const counts = promptsCounts.get(d.device_id) || { today: 0, total: 0 };
 
       return {
         id: d.device_id,
-        hostname: d.hostname || 'Unknown',
+        hostname: d.hostname || "Unknown",
         status: deviceStatus,
-        os: d.os || 'Unknown',
+        os: d.os || "Unknown",
         ip_address: ipAddress,
         last_seen: d.last_heartbeat || new Date().toISOString(),
         browser_count: browserCount,
         prompts_today: counts.today,
         total_prompts: counts.total,
         registered_at: d.registered_at, // Keep for sorting
-      }
-    })
+      };
+    });
 
     // Sort by registered_at descending (newest first)
     devices.sort((a, b) => {
-      const dateA = (a as any).registered_at ? new Date((a as any).registered_at).getTime() : 0
-      const dateB = (b as any).registered_at ? new Date((b as any).registered_at).getTime() : 0
-      return dateB - dateA // Descending order (newest first)
-    })
+      const dateA = (a as any).registered_at
+        ? new Date((a as any).registered_at).getTime()
+        : 0;
+      const dateB = (b as any).registered_at
+        ? new Date((b as any).registered_at).getTime()
+        : 0;
+      return dateB - dateA; // Descending order (newest first)
+    });
 
     // Apply status filter if provided
     if (status) {
-      devices = devices.filter((d) => d.status === status)
+      devices = devices.filter((d) => d.status === status);
     }
 
     // Apply search filter if provided
     if (search) {
-      const searchLower = search.toLowerCase()
+      const searchLower = search.toLowerCase();
       devices = devices.filter(
         (d) =>
           d.hostname.toLowerCase().includes(searchLower) ||
           d.id.toLowerCase().includes(searchLower) ||
           d.ip_address.includes(search)
-      )
+      );
     }
 
-    return NextResponse.json(devices)
+    return NextResponse.json(devices);
   } catch (error) {
-    console.error('Error fetching devices:', error)
+    console.error("Error fetching devices:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch devices' },
+      { error: "Failed to fetch devices" },
       { status: 500 }
-    )
+    );
   }
 }
-
