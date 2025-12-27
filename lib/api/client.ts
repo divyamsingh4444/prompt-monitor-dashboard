@@ -72,7 +72,18 @@ class ApiClient {
 
   // Prompt endpoints
   async getDevicePrompts(deviceId: string): Promise<Prompt[]> {
-    return this.fetch<Prompt[]>(`/admin/prompts/${deviceId}`);
+    const apiPrompts = await this.fetch<any[]>(`/admin/prompts/${deviceId}`);
+    return apiPrompts.map((p) => ({
+      id: p.id,
+      device_id: p.device_id,
+      site: p.site || "Unknown",
+      prompt_text: p.prompt || p.prompt_text || p.description || "",
+      timestamp: p.timestamp,
+      browser: p.browser_name || p.browser || "",
+      is_flagged: p.is_flagged || false,
+      url: p.url,
+      username: p.username,
+    }));
   }
 
   async getPrompt(promptId: string): Promise<Prompt> {

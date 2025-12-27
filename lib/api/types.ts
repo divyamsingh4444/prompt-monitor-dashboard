@@ -12,12 +12,14 @@ export interface Device {
 
 export interface Prompt {
   id: string;
-  device_id: string;
+  device_id?: string;
   site: string;
-  prompt_text: string;
-  timestamp: string;
-  browser: string;
+  prompt_text: string; // Mapped from 'prompt' or 'description'
+  timestamp: number; // Epoch timestamp in milliseconds
+  browser: string; // Mapped from 'browser_name'
   is_flagged: boolean;
+  url?: string;
+  username?: string;
 }
 
 export interface DeviceEvent {
