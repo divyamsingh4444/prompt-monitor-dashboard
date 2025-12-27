@@ -68,7 +68,15 @@ export async function GET(request: NextRequest) {
         browser_count: browserCount,
         prompts_today: counts.today,
         total_prompts: counts.total,
+        registered_at: d.registered_at, // Keep for sorting
       }
+    })
+
+    // Sort by registered_at descending (newest first)
+    devices.sort((a, b) => {
+      const dateA = (a as any).registered_at ? new Date((a as any).registered_at).getTime() : 0
+      const dateB = (b as any).registered_at ? new Date((b as any).registered_at).getTime() : 0
+      return dateB - dateA // Descending order (newest first)
     })
 
     // Apply status filter if provided
