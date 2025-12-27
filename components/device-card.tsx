@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Monitor, Cpu, Globe, Clock, MessageSquare } from "lucide-react"
 import type { Device } from "../app/api/types"
-import { CyberStatusBadge } from "./cyber-status-badge"
+import { StatusBadge } from "./status-badge"
 import { formatTimeAgo } from "../lib/utils/time"
 
 interface DeviceCardProps {
@@ -31,7 +31,7 @@ export function DeviceCard({ device }: DeviceCardProps) {
               </div>
             </div>
             <div className="shrink-0 ml-2">
-              <CyberStatusBadge status={device.status} />
+              <StatusBadge status={device.status} />
             </div>
           </div>
 

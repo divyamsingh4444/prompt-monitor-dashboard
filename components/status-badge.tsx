@@ -5,7 +5,7 @@ interface StatusBadgeProps {
   className?: string
 }
 
-export function StatusBadge({ status, className }: CyberStatusBadgeProps) {
+export function StatusBadge({ status, className }: StatusBadgeProps) {
   const configs = {
     active: {
       label: "ONLINE",

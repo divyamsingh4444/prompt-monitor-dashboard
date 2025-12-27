@@ -16,8 +16,8 @@ import {
 import Link from "next/link"
 import { Button } from "../../../components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs"
-import { CyberStatusBadge } from "../../../components/cyber-status-badge"
-import { JsonDetailModal } from "../../../components/json-detail-modal"
+import { StatusBadge } from "../../../components/status-badge"
+import { DetailModal } from "../../../components/detail-modal"
 import { formatTimeAgo, formatTimestamp } from "../../../lib/utils/time"
 import type { Device, DeviceEvent, Prompt, Alert } from "../../api/types"
 
@@ -108,7 +108,7 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ id: str
             <div>
               <div className="flex items-center gap-3 mb-1">
                 <h1 className="text-2xl font-mono font-bold text-primary neon-text uppercase">{device.hostname}</h1>
-                <CyberStatusBadge status={device.status} />
+                <StatusBadge status={device.status} />
               </div>
               <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
                 ID: {device.id} • {device.os} • {device.ip_address}
@@ -288,7 +288,7 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ id: str
         </TabsContent>
       </Tabs>
 
-      <JsonDetailModal
+      <DetailModal
         isOpen={modalData.open}
         onClose={() => setModalData({ ...modalData, open: false })}
         title={modalData.title}
