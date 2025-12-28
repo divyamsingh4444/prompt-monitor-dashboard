@@ -49,7 +49,7 @@ export default function DeviceDetailPage({
       const [deviceData, eventsResponse, promptsData] = await Promise.all([
         api<Device>(`/api/devices/${id}`),
         api<{ events: DeviceEvent[]; stats: object }>(
-          `/api/devices/${id}/events`
+          `/api/devices/${id}/events`,
         ),
         api<Prompt[]>(`/api/devices/${id}/prompts`),
       ]);
@@ -60,7 +60,7 @@ export default function DeviceDetailPage({
       const alertsData: Alert[] = eventsData
         .filter(
           (event) =>
-            event.severity === "warning" || event.severity === "critical"
+            event.severity === "warning" || event.severity === "critical",
         )
         .map((event) => {
           // Type guard for severity
@@ -192,8 +192,8 @@ export default function DeviceDetailPage({
                       event.severity === "critical"
                         ? "bg-destructive/10 border-destructive/50"
                         : event.severity === "warning"
-                        ? "bg-yellow-500/10 border-yellow-500/50"
-                        : "bg-primary/10 border-primary/50"
+                          ? "bg-yellow-500/10 border-yellow-500/50"
+                          : "bg-primary/10 border-primary/50"
                     }`}
                   >
                     <Activity
@@ -201,8 +201,8 @@ export default function DeviceDetailPage({
                         event.severity === "critical"
                           ? "text-destructive"
                           : event.severity === "warning"
-                          ? "text-yellow-500"
-                          : "text-primary"
+                            ? "text-yellow-500"
+                            : "text-primary"
                       }`}
                     />
                   </div>

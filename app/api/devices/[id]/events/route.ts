@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import type { DeviceEvent, Tables } from "@/types";
+import type { DeviceEvent, DatabaseDeviceEvent } from "@/types";
 import { decodeDeviceEventMetadata, decodeSeverity } from "@/types";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -19,7 +19,7 @@ export async function GET(
     if (error) throw error;
 
     // Transform database events to frontend DeviceEvent type
-    const eventsList: Tables<"device_events">[] = data || [];
+    const eventsList: DatabaseDeviceEvent[] = data || [];
     const events: DeviceEvent[] = eventsList.map((e) => {
       // Extract url and prompt from metadata JSONB if present using decoder
       const metadata = decodeDeviceEventMetadata(e.metadata);
@@ -62,7 +62,7 @@ export async function GET(
     console.error("Error fetching device events:", error);
     return NextResponse.json(
       { error: "Failed to fetch device events" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

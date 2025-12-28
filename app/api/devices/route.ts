@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import type { Device, Tables, PromptCount } from "@/types";
+import type { Device, PromptCount, DatabaseDevice } from "@/types";
 import { decodeStringArray } from "@/lib/utils/decoders";
 
 export async function GET(request: NextRequest) {
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Transform database devices to frontend Device type
-    const devicesList: Tables<"devices">[] = devicesData || [];
+    const devicesList: DatabaseDevice[] = devicesData || [];
     let devices: Device[] = devicesList.map((d) => {
       // Determine status based on last_heartbeat (active if within last 5 minutes)
       const fiveMinutesAgo = new Date();

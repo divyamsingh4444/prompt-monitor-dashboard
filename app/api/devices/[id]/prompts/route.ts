@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import type { Prompt, Tables } from "@/types";
+import type { Prompt, DatabasePrompt } from "@/types";
 
 export async function GET(
   request: NextRequest,
@@ -18,7 +18,7 @@ export async function GET(
     if (error) throw error;
 
     // Transform database prompts to frontend Prompt type
-    const promptsList: Tables<"prompts">[] = data || [];
+    const promptsList: DatabasePrompt[] = data || [];
     const prompts: Prompt[] = promptsList.map((p) => ({
       id: p.id,
       device_id: p.device_id ?? null,

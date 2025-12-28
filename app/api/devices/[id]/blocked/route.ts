@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import type { BlockedPrompt, Tables } from "@/types";
+import type { BlockedPrompt, DatabaseComplianceEvent } from "@/types";
 import { decodeComplianceEventDetails } from "@/types";
 
 export async function GET(
@@ -21,7 +21,7 @@ export async function GET(
     if (error) throw error;
 
     // Transform compliance events to BlockedPrompt type
-    const eventsList: Tables<"compliance_events">[] = data || [];
+    const eventsList: DatabaseComplianceEvent[] = data || [];
     const blockedPrompts: BlockedPrompt[] = eventsList.map((ce) => {
       // Extract site from details JSONB if present using decoder
       const details = decodeComplianceEventDetails(ce.details);

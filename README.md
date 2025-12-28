@@ -1,105 +1,162 @@
-# Cyberpunk admin dashboard
+# Prompt Monitor Dashboard
 
-_Automatically synced with your [v0.app](https://v0.app) deployments_
+A real-time monitoring dashboard for tracking AI prompts across multiple devices with compliance and security features.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/divyamsingh4444s-projects/v0-cyberpunk-admin-dashboard)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/s2Kh3dGzB5B)
+## Features
 
-## Overview
+- **Device Monitoring**: Track multiple devices with real-time status updates
+- **Prompt Tracking**: Monitor AI prompts captured from various browsers and sites
+- **Compliance Events**: Track blocked prompts and compliance violations
+- **Event Logging**: Comprehensive event tracking with severity levels
+- **Real-time Updates**: Auto-refresh functionality for live data
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+## Tech Stack
 
-## Deployment
+- **Framework**: Next.js 16 (App Router)
+- **Database**: Supabase (PostgreSQL)
+- **Language**: TypeScript (strict mode)
+- **Styling**: Tailwind CSS v4
+- **UI Components**: Radix UI + Shadcn
+- **Type Generation**: type-crafter + Supabase CLI
 
-Your project is live at:
+## Getting Started
 
-**[https://vercel.com/divyamsingh4444s-projects/v0-cyberpunk-admin-dashboard](https://vercel.com/divyamsingh4444s-projects/v0-cyberpunk-admin-dashboard)**
+### Prerequisites
 
-## Build your app
+- Node.js 18+ and pnpm
+- Supabase account and project
+- Supabase CLI (for type generation)
 
-Continue building your app on:
+### Installation
 
-**[https://v0.app/chat/s2Kh3dGzB5B](https://v0.app/chat/s2Kh3dGzB5B)**
+1. Clone the repository:
 
-## How It Works
-
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
-
-## Supabase Setup
-
-This project now uses Supabase as the database backend. To set up:
-
-1. Create a Supabase project at [https://app.supabase.com](https://app.supabase.com)
-
-2. Create the following tables in your Supabase database:
-   - `devices` - Device information
-   - `prompts` - Captured prompts
-   - `events` - Device events
-   - `blocked_prompts` - Blocked prompts
-
-3. Create a `.env.local` file in the root directory with:
-
+   ```bash
+   git clone <repository-url>
+   cd prompt-monitor-dashboard
    ```
+
+2. Install dependencies:
+
+   ```bash
+   pnpm install
+   ```
+
+3. Set up environment variables:
+   Create a `.env.local` file in the root directory:
+
+   ```env
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   SUPABASE_ACCESS_TOKEN=your_personal_access_token  # Optional, for type generation
    ```
 
-4. Get these values from your Supabase project dashboard:
-   - Go to Settings → API
-   - Copy the Project URL and anon/public key
+4. Generate types:
 
-### Database Schema
+   ```bash
+   pnpm run generate:types
+   ```
 
-The API routes expect the following table structures:
+5. Run the development server:
+   ```bash
+   pnpm dev
+   ```
 
-**devices**
+## Project Structure
 
-- `device_id` (text, primary key)
-- `hostname` (text)
-- `status` (text: 'active', 'inactive', 'offline', etc.)
-- `os` (text)
-- `ip_address` (text)
-- `last_seen` (timestamp)
-- `browser_count` (integer)
-- `prompts_today` (integer)
-- `total_prompts` (integer)
+```
+prompt-monitor-dashboard/
+├── app/                    # Next.js App Router pages and API routes
+│   ├── api/               # API endpoints
+│   ├── device/            # Device detail pages
+│   └── page.tsx           # Dashboard homepage
+├── components/            # React components
+├── lib/                   # Utility functions and hooks
+│   ├── supabase.ts        # Supabase client
+│   └── utils/             # Helper functions
+├── types/                 # Central type exports (@/types)
+│   ├── index.ts           # Re-exports all types
+│   └── database.ts        # Database type aliases
+├── src/generated/         # Generated type files
+│   ├── types/             # type-crafter generated types
+│   └── supabase/          # Supabase generated types
+├── docs/                  # Documentation
+│   └── specs/             # Type specifications
+└── scripts/               # Build and generation scripts
+```
 
-**prompts**
+## Available Scripts
 
-- `id` (uuid, primary key)
-- `device_id` (text, foreign key to devices)
-- `site` (text)
-- `prompt` or `prompt_text` (text)
-- `timestamp` (bigint - epoch milliseconds)
-- `browser` or `browser_name` (text)
-- `is_flagged` (boolean)
-- `url` (text, optional)
-- `username` (text, optional)
+- `pnpm dev` - Start development server
+- `pnpm build` - Build for production
+- `pnpm start` - Start production server
+- `pnpm lint` - Run ESLint
+- `pnpm lint:fix` - Fix ESLint errors
+- `pnpm format` - Format all files with Prettier
+- `pnpm generate:types` - Generate all TypeScript types
+- `pnpm generate:supabase:types` - Generate Supabase types only
 
-**events**
+## Type System
 
-- `id` (uuid, primary key)
-- `device_id` (text, foreign key to devices)
-- `event_type` (text)
-- `severity` (text: 'info', 'warning', 'critical')
-- `description` (text)
-- `timestamp` (bigint - epoch milliseconds)
-- `site` (text, optional)
-- `browser_name` (text, optional)
-- `profile_name` (text, optional)
-- `username` (text, optional)
-- `url` (text, optional)
-- `prompt` (text, optional)
-- `hostname` (text, optional)
+This project uses a comprehensive type generation system:
 
-**blocked_prompts**
+- **Database Types**: Generated from Supabase schema
+- **API Types**: Generated from YAML specs using type-crafter
+- **Custom Decoders**: Runtime validation for JSONB fields
 
-- `id` (uuid, primary key)
-- `device_id` (text, foreign key to devices)
-- `site` (text)
-- `reason` (text)
-- `timestamp` (timestamp or text)
+All types are exported from `@/types` - see [docs/type-system.md](./docs/type-system.md) for details.
+
+## API Routes
+
+The application provides RESTful API endpoints:
+
+- `GET /api/stats` - Dashboard statistics
+- `GET /api/devices` - List all devices
+- `GET /api/devices/[id]` - Get device details
+- `GET /api/devices/[id]/prompts` - Get device prompts
+- `GET /api/devices/[id]/events` - Get device events
+- `GET /api/devices/[id]/blocked` - Get blocked prompts
+- `GET /api/prompt/[id]` - Get prompt details
+
+See [docs/api.md](./docs/api.md) for detailed API documentation.
+
+## Database Schema
+
+The application uses the following Supabase tables:
+
+- `devices` - Device information and status
+- `prompts` - Captured AI prompts
+- `device_events` - Device events and alerts
+- `compliance_events` - Compliance violations and blocked prompts
+
+See [docs/database.md](./docs/database.md) for the complete schema.
+
+## Development
+
+### Type Generation
+
+Types are automatically generated from:
+
+1. **Supabase Schema**: Database types from your Supabase project
+2. **YAML Specs**: Custom types defined in `docs/specs/types.spec.yaml`
+
+Run `pnpm run generate:types` to regenerate all types after schema changes.
+
+### Code Style
+
+- TypeScript strict mode enabled
+- ESLint for code quality
+- Prettier for code formatting
+- No `any` or `unknown` types - all types are explicit
+
+## Documentation
+
+- [Developer Guide](./docs/development.md) - Complete guide for developers
+- [Type System](./docs/type-system.md) - Type generation and usage
+- [API Documentation](./docs/api.md) - API endpoints and usage
+- [Database Schema](./docs/database.md) - Database structure
+- [Architecture](./docs/architecture.md) - System architecture overview
+
+## License
+
+Private project
