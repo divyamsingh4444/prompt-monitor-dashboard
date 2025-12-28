@@ -1,15 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import type { DeviceEvent } from "@/src/generated/types";
-import type { Tables } from "@/src/generated/types";
-import {
-  decodeDeviceEventMetadata,
-  decodeSeverity,
-} from "@/src/generated/types";
+import type { DeviceEvent, Tables } from "@/types";
+import { decodeDeviceEventMetadata, decodeSeverity } from "@/types";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
@@ -66,7 +62,7 @@ export async function GET(
     console.error("Error fetching device events:", error);
     return NextResponse.json(
       { error: "Failed to fetch device events" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

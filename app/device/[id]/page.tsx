@@ -19,13 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatusBadge } from "@/components/status-badge";
 import { DetailModal } from "@/components/detail-modal";
 import { formatTimeAgo, formatTimestamp } from "@/lib/utils/time";
-import type {
-  Device,
-  DeviceEvent,
-  Prompt,
-  Alert,
-  Json,
-} from "@/src/generated/types";
+import type { Device, DeviceEvent, Prompt, Alert, Json } from "@/types";
 
 export default function DeviceDetailPage({
   params,

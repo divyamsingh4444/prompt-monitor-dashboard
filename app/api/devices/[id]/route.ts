@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import type { Device } from "@/src/generated/types";
-import type { Tables } from "@/src/generated/types";
-import { decodeSupabaseError, type PromptCount } from "@/src/generated/types";
+import type { Device, Tables, PromptCount } from "@/types";
+import { decodeSupabaseError } from "@/types";
 import { decodeStringArray } from "@/lib/utils/decoders";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
@@ -23,7 +22,7 @@ export async function GET(
       if (decodedError && decodedError.code === "PGRST116") {
         return NextResponse.json(
           { error: "Device not found" },
-          { status: 404 },
+          { status: 404 }
         );
       }
       throw error;
@@ -98,7 +97,7 @@ export async function GET(
     console.error("Error fetching device:", error);
     return NextResponse.json(
       { error: "Failed to fetch device" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

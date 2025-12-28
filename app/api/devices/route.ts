@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import type { Device } from "@/src/generated/types";
-import type { Tables } from "@/src/generated/types";
+import type { Device, Tables, PromptCount } from "@/types";
 import { decodeStringArray } from "@/lib/utils/decoders";
-import type { PromptCount } from "@/src/generated/types";
 
 export async function GET(request: NextRequest) {
   try {

@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import type { BlockedPrompt } from "@/src/generated/types";
-import type { Tables } from "@/src/generated/types";
-import { decodeComplianceEventDetails } from "@/src/generated/types";
+import type { BlockedPrompt, Tables } from "@/types";
+import { decodeComplianceEventDetails } from "@/types";
 
 export async function GET(
   request: NextRequest,

@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "./ui/dialog";
-import type { Json } from "@/src/generated/types";
+import type { Json } from "@/types";
 
 interface DetailModalProps {
   isOpen: boolean;

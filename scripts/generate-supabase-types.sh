@@ -47,7 +47,7 @@ fi
 PROJECT_ID="${BASH_REMATCH[1]}"
 echo "Extracted project ID from NEXT_PUBLIC_SUPABASE_URL: $PROJECT_ID"
 
-OUTPUT_PATH="$PROJECT_ROOT/src/generated/types/SupabaseTypes.ts"
+OUTPUT_PATH="$PROJECT_ROOT/src/generated/supabase/SupabaseTypes.ts"
 
 echo ""
 echo "📝 Generating Supabase types for project: $PROJECT_ID"

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import type { Prompt } from "@/src/generated/types";
-import type { Tables } from "@/src/generated/types";
+import type { Prompt, Tables } from "@/types";
 
 export async function GET(
   request: NextRequest,
