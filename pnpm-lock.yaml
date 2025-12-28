@@ -190,7 +190,7 @@ importers:
         version: 0.8.2
       typescript:
         specifier: ^5
-        version: 5.0.2
+        version: 5.9.3
 
 packages:
   "@alloc/quick-lru@5.2.0":
@@ -2477,12 +2477,12 @@ packages:
         integrity: sha512-hBeqgSqL0ZOruOZVh7kIoP6+aRSdQaYf07ZE5lNTv9GWiJGLqoOT0U1oIpJCcM5xDERV6x/AAmOTv80AuXW3yg==,
       }
 
-  typescript@5.0.2:
+  typescript@5.9.3:
     resolution:
       {
-        integrity: sha512-wVORMBGO/FAs/++blGNeAVdbNKtIh1rbBL2EyQ1+J9lClJ93KiiKe8PmFIVdXhHcyv44SL9oglmfeSsndo0jRw==,
+        integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==,
       }
-    engines: { node: ">=12.20" }
+    engines: { node: ">=14.17" }
     hasBin: true
 
   undici-types@6.11.1:
@@ -4048,7 +4048,7 @@ snapshots:
 
   type-decoder@1.2.0: {}
 
-  typescript@5.0.2: {}
+  typescript@5.9.3: {}
 
   undici-types@6.11.1: {}
 

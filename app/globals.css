@@ -207,7 +207,8 @@
 
   .cyber-card::before {
     content: "";
-    @apply absolute top-0 left-0 w-1 h-full bg-primary shadow-[0_0_10px_rgba(0, 255, 255, 0.8)];
+    @apply absolute top-0 left-0 w-1 h-full bg-primary;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
   }
 
   .neon-text {
