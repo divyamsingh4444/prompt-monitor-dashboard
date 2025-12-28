@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import type { DeviceEvent } from "@/app/api/types";
+import type { DeviceEvent } from "@/src/generated/types";
+import type { Tables } from "@/src/generated/types";
+import {
+  decodeDeviceEventMetadata,
+  decodeSeverity,
+} from "@/src/generated/types";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -18,27 +23,33 @@ export async function GET(
     if (error) throw error;
 
     // Transform database events to frontend DeviceEvent type
-    const events: DeviceEvent[] = (data || []).map((e: any) => {
-      // Extract url and prompt from metadata JSONB if present
-      const metadata = e.metadata || {};
-      const url = e.url || metadata.url;
-      const prompt = metadata.prompt;
+    const eventsList: Tables<"device_events">[] = data || [];
+    const events: DeviceEvent[] = eventsList.map((e) => {
+      // Extract url and prompt from metadata JSONB if present using decoder
+      const metadata = decodeDeviceEventMetadata(e.metadata);
+      const url = metadata?.url ?? null;
+      const prompt = metadata?.prompt ?? null;
+
+      // Decode severity with fallback to "info"
+      const decodedSeverity = decodeSeverity(e.severity);
+      const severity: "info" | "warning" | "critical" =
+        decodedSeverity ?? "info";
 
       return {
         id: e.id,
         device_id: e.device_id,
         event_type: e.event_type || "unknown",
-        severity: e.severity || "info",
+        severity,
         description: e.description || "",
         timestamp:
           e.timestamp || new Date(e.created_at || Date.now()).getTime(),
-        site: e.site,
-        browser_name: e.browser_name,
-        profile_name: e.profile_name,
-        username: e.username,
-        url: url,
-        prompt: prompt,
-        hostname: undefined, // Not in schema
+        site: e.site ?? null,
+        browser_name: e.browser_name ?? null,
+        profile_name: e.profile_name ?? null,
+        username: e.username ?? null,
+        url: url ?? null,
+        prompt: prompt ?? null,
+        hostname: null, // Not in schema
       };
     });
 
@@ -55,7 +66,7 @@ export async function GET(
     console.error("Error fetching device events:", error);
     return NextResponse.json(
       { error: "Failed to fetch device events" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

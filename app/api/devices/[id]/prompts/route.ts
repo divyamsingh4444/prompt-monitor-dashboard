@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import type { Prompt } from "@/app/api/types";
+import type { Prompt } from "@/src/generated/types";
+import type { Tables } from "@/src/generated/types";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -18,16 +19,17 @@ export async function GET(
     if (error) throw error;
 
     // Transform database prompts to frontend Prompt type
-    const prompts: Prompt[] = (data || []).map((p: any) => ({
+    const promptsList: Tables<"prompts">[] = data || [];
+    const prompts: Prompt[] = promptsList.map((p) => ({
       id: p.id,
-      device_id: p.device_id,
+      device_id: p.device_id ?? null,
       site: p.site || "Unknown",
       prompt_text: p.prompt || "",
       timestamp: p.timestamp || new Date(p.created_at || Date.now()).getTime(),
       browser: p.browser_name || "",
       is_flagged: false, // Not in schema, default to false
-      url: p.url,
-      username: p.username,
+      url: p.url ?? null,
+      username: p.username ?? null,
     }));
 
     return NextResponse.json(prompts);
@@ -35,7 +37,7 @@ export async function GET(
     console.error("Error fetching device prompts:", error);
     return NextResponse.json(
       { error: "Failed to fetch device prompts" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

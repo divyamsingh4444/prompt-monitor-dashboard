@@ -1,31 +1,34 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback, useRef } from "react";
 
 interface UseAutoRefreshProps {
-  onRefresh: () => Promise<void>
-  interval?: number
+  onRefresh: () => Promise<void>;
+  interval?: number;
 }
 
-export function useAutoRefresh({ onRefresh, interval = 60000 }: UseAutoRefreshProps) {
-  const [isRefreshing, setIsRefreshing] = useState(false)
-  const timerRef = useRef<NodeJS.Timeout | null>(null)
+export function useAutoRefresh({
+  onRefresh,
+  interval = 60000,
+}: UseAutoRefreshProps) {
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const refresh = useCallback(async () => {
-    setIsRefreshing(true)
+    setIsRefreshing(true);
     try {
-      await onRefresh()
+      await onRefresh();
     } finally {
-      setIsRefreshing(false)
+      setIsRefreshing(false);
     }
-  }, [onRefresh])
+  }, [onRefresh]);
 
   useEffect(() => {
-    timerRef.current = setInterval(refresh, interval)
+    timerRef.current = setInterval(refresh, interval);
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current)
-    }
-  }, [refresh, interval])
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [refresh, interval]);
 
-  return { refresh, isRefreshing }
+  return { refresh, isRefreshing };
 }

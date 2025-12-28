@@ -1,25 +1,37 @@
-"use client"
+"use client";
 
-import { Copy, Check } from "lucide-react"
-import { useState } from "react"
-import { Button } from "./ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog"
+import { Copy, Check } from "lucide-react";
+import { useState } from "react";
+import { Button } from "./ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "./ui/dialog";
+import type { Json } from "@/src/generated/types";
 
 interface DetailModalProps {
-  isOpen: boolean
-  onClose: () => void
-  title: string
-  data: any
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  data: Json | null;
 }
 
-export function DetailModal({ isOpen, onClose, title, data }: DetailModalProps) {
-  const [copied, setCopied] = useState(false)
+export function DetailModal({
+  isOpen,
+  onClose,
+  title,
+  data,
+}: DetailModalProps) {
+  const [copied, setCopied] = useState(false);
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(JSON.stringify(data, null, 2))
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+    navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -30,7 +42,9 @@ export function DetailModal({ isOpen, onClose, title, data }: DetailModalProps) 
               DATA_VIEW :: {title}
             </DialogTitle>
           </div>
-          <DialogDescription className="sr-only">Raw JSON data view</DialogDescription>
+          <DialogDescription className="sr-only">
+            Raw JSON data view
+          </DialogDescription>
         </DialogHeader>
 
         <div className="p-4 relative">
@@ -44,8 +58,14 @@ export function DetailModal({ isOpen, onClose, title, data }: DetailModalProps) 
             className="absolute top-6 right-6 border-primary/30 bg-card/80 hover:bg-primary/20"
             onClick={copyToClipboard}
           >
-            {copied ? <Check className="w-3.5 h-3.5 text-accent" /> : <Copy className="w-3.5 h-3.5" />}
-            <span className="ml-2 font-mono text-[10px]">{copied ? "COPIED" : "COPY_JSON"}</span>
+            {copied ? (
+              <Check className="w-3.5 h-3.5 text-accent" />
+            ) : (
+              <Copy className="w-3.5 h-3.5" />
+            )}
+            <span className="ml-2 font-mono text-[10px]">
+              {copied ? "COPIED" : "COPY_JSON"}
+            </span>
           </Button>
         </div>
 
@@ -61,5 +81,5 @@ export function DetailModal({ isOpen, onClose, title, data }: DetailModalProps) 
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

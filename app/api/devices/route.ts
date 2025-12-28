@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import type { Device } from "@/app/api/types";
+import type { Device } from "@/src/generated/types";
+import type { Tables } from "@/src/generated/types";
+import { decodeStringArray } from "@/lib/utils/decoders";
+import type { PromptCount } from "@/src/generated/types";
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,23 +31,30 @@ export async function GET(request: NextRequest) {
 
     // Calculate prompts counts per device
     const promptsCounts = new Map<string, { today: number; total: number }>();
-    promptsData?.forEach((p: any) => {
-      if (!p.device_id) return;
-      const counts = promptsCounts.get(p.device_id) || { today: 0, total: 0 };
-      counts.total++;
-      // Convert timestamp to number if it's a string (Supabase bigint can come as string)
-      const timestamp =
-        typeof p.timestamp === "string"
-          ? parseInt(p.timestamp, 10)
-          : p.timestamp;
-      if (timestamp && timestamp >= todayTimestamp) {
-        counts.today++;
-      }
-      promptsCounts.set(p.device_id, counts);
-    });
+    if (promptsData) {
+      promptsData.forEach((p: PromptCount) => {
+        if (!p.device_id) return;
+        const counts = promptsCounts.get(p.device_id) || { today: 0, total: 0 };
+        counts.total++;
+        // Convert timestamp to number if it's a string (Supabase bigint can come as string)
+        const timestamp =
+          typeof p.timestamp === "string"
+            ? parseInt(p.timestamp, 10)
+            : p.timestamp;
+        if (
+          timestamp &&
+          typeof timestamp === "number" &&
+          timestamp >= todayTimestamp
+        ) {
+          counts.today++;
+        }
+        promptsCounts.set(p.device_id, counts);
+      });
+    }
 
     // Transform database devices to frontend Device type
-    let devices: Device[] = (devicesData || []).map((d: any) => {
+    const devicesList: Tables<"devices">[] = devicesData || [];
+    let devices: Device[] = devicesList.map((d) => {
       // Determine status based on last_heartbeat (active if within last 5 minutes)
       const fiveMinutesAgo = new Date();
       fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
@@ -54,12 +64,13 @@ export async function GET(request: NextRequest) {
       const isActive = lastHeartbeat && lastHeartbeat >= fiveMinutesAgo;
       const deviceStatus = isActive ? "active" : "inactive";
 
-      // Extract IP from JSONB array
-      const ipAddress =
-        Array.isArray(d.ips) && d.ips.length > 0 ? d.ips[0] : "N/A";
+      // Extract IP from JSONB array using decoder
+      const ips = decodeStringArray(d.ips);
+      const ipAddress = ips && ips.length > 0 ? ips[0] : "N/A";
 
-      // Count browsers from JSONB array
-      const browserCount = Array.isArray(d.browsers) ? d.browsers.length : 0;
+      // Count browsers from JSONB array using decoder
+      const browsers = decodeStringArray(d.browsers);
+      const browserCount = browsers ? browsers.length : 0;
 
       // Get prompts counts
       const counts = promptsCounts.get(d.device_id) || { today: 0, total: 0 };
@@ -80,12 +91,8 @@ export async function GET(request: NextRequest) {
 
     // Sort by registered_at descending (newest first)
     devices.sort((a, b) => {
-      const dateA = (a as any).registered_at
-        ? new Date((a as any).registered_at).getTime()
-        : 0;
-      const dateB = (b as any).registered_at
-        ? new Date((b as any).registered_at).getTime()
-        : 0;
+      const dateA = a.registered_at ? new Date(a.registered_at).getTime() : 0;
+      const dateB = b.registered_at ? new Date(b.registered_at).getTime() : 0;
       return dateB - dateA; // Descending order (newest first)
     });
 
@@ -101,7 +108,7 @@ export async function GET(request: NextRequest) {
         (d) =>
           d.hostname.toLowerCase().includes(searchLower) ||
           d.id.toLowerCase().includes(searchLower) ||
-          d.ip_address.includes(search)
+          d.ip_address.includes(search),
       );
     }
 
@@ -110,7 +117,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching devices:", error);
     return NextResponse.json(
       { error: "Failed to fetch devices" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

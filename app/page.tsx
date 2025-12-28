@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { api } from "@/lib/utils/api";
-import type { Device, DashboardStats } from "./api/types";
+import type { Device, DashboardStats } from "@/src/generated/types";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { DeviceCard } from "@/components/device-card";
 import { useAutoRefresh } from "@/lib/hooks/use-auto-refresh";

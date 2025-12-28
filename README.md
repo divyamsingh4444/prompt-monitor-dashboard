@@ -36,7 +36,6 @@ This project now uses Supabase as the database backend. To set up:
 1. Create a Supabase project at [https://app.supabase.com](https://app.supabase.com)
 
 2. Create the following tables in your Supabase database:
-
    - `devices` - Device information
    - `prompts` - Captured prompts
    - `events` - Device events

@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import type { Device } from "@/app/api/types";
+import type { Device } from "@/src/generated/types";
+import type { Tables } from "@/src/generated/types";
+import { decodeSupabaseError, type PromptCount } from "@/src/generated/types";
+import { decodeStringArray } from "@/lib/utils/decoders";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -16,14 +19,21 @@ export async function GET(
       .single();
 
     if (error) {
-      if (error.code === "PGRST116") {
+      const decodedError = decodeSupabaseError(error);
+      if (decodedError && decodedError.code === "PGRST116") {
         return NextResponse.json(
           { error: "Device not found" },
-          { status: 404 }
+          { status: 404 },
         );
       }
       throw error;
     }
+
+    if (!data) {
+      return NextResponse.json({ error: "Device not found" }, { status: 404 });
+    }
+
+    const deviceData: Tables<"devices"> = data;
 
     // Calculate prompts counts
     const today = new Date();
@@ -32,51 +42,55 @@ export async function GET(
 
     const { data: promptsData, error: promptsError } = await supabase
       .from("prompts")
-      .select("timestamp")
+      .select("device_id, timestamp")
       .eq("device_id", id);
 
     if (promptsError) throw promptsError;
 
     // Convert timestamps to numbers if they're strings (Supabase bigint can come as string)
-    const promptsToday =
-      promptsData?.filter((p: any) => {
-        const timestamp =
-          typeof p.timestamp === "string"
-            ? parseInt(p.timestamp, 10)
-            : p.timestamp;
-        return timestamp && timestamp >= todayTimestamp;
-      }).length || 0;
-    const totalPrompts = promptsData?.length || 0;
+    const promptsList: PromptCount[] = promptsData || [];
+    const promptsToday = promptsList.filter((p) => {
+      const timestamp =
+        typeof p.timestamp === "string"
+          ? parseInt(p.timestamp, 10)
+          : p.timestamp;
+      return (
+        timestamp &&
+        typeof timestamp === "number" &&
+        timestamp >= todayTimestamp
+      );
+    }).length;
+    const totalPrompts = promptsList.length;
 
     // Determine status based on last_heartbeat
     const fiveMinutesAgo = new Date();
     fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
-    const lastHeartbeat = data.last_heartbeat
-      ? new Date(data.last_heartbeat)
+    const lastHeartbeat = deviceData.last_heartbeat
+      ? new Date(deviceData.last_heartbeat)
       : null;
     const isActive = lastHeartbeat && lastHeartbeat >= fiveMinutesAgo;
     const deviceStatus = isActive ? "active" : "inactive";
 
-    // Extract IP from JSONB array
-    const ipAddress =
-      Array.isArray(data.ips) && data.ips.length > 0 ? data.ips[0] : "N/A";
+    // Extract IP from JSONB array using decoder
+    const ips = decodeStringArray(deviceData.ips);
+    const ipAddress = ips && ips.length > 0 ? ips[0] : "N/A";
 
-    // Count browsers from JSONB array
-    const browserCount = Array.isArray(data.browsers)
-      ? data.browsers.length
-      : 0;
+    // Count browsers from JSONB array using decoder
+    const browsers = decodeStringArray(deviceData.browsers);
+    const browserCount = browsers ? browsers.length : 0;
 
     // Transform database device to frontend Device type
     const device: Device = {
-      id: data.device_id,
-      hostname: data.hostname || "Unknown",
+      id: deviceData.device_id,
+      hostname: deviceData.hostname || "Unknown",
       status: deviceStatus,
-      os: data.os || "Unknown",
+      os: deviceData.os || "Unknown",
       ip_address: ipAddress,
-      last_seen: data.last_heartbeat || new Date().toISOString(),
+      last_seen: deviceData.last_heartbeat || new Date().toISOString(),
       browser_count: browserCount,
       prompts_today: promptsToday,
       total_prompts: totalPrompts,
+      registered_at: deviceData.registered_at ?? null,
     };
 
     return NextResponse.json(device);
@@ -84,7 +98,7 @@ export async function GET(
     console.error("Error fetching device:", error);
     return NextResponse.json(
       { error: "Failed to fetch device" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

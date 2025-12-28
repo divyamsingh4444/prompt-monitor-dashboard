@@ -19,7 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatusBadge } from "@/components/status-badge";
 import { DetailModal } from "@/components/detail-modal";
 import { formatTimeAgo, formatTimestamp } from "@/lib/utils/time";
-import type { Device, DeviceEvent, Prompt, Alert } from "@/app/api/types";
+import type { Device, DeviceEvent, Prompt, Alert } from "@/src/generated/types";
 
 export default function DeviceDetailPage({
   params,
@@ -36,7 +36,7 @@ export default function DeviceDetailPage({
   const [modalData, setModalData] = useState<{
     open: boolean;
     title: string;
-    data: any;
+    data: Json | null;
   }>({
     open: false,
     title: "",
@@ -49,7 +49,7 @@ export default function DeviceDetailPage({
       const [deviceData, eventsResponse, promptsData] = await Promise.all([
         api<Device>(`/api/devices/${id}`),
         api<{ events: DeviceEvent[]; stats: object }>(
-          `/api/devices/${id}/events`
+          `/api/devices/${id}/events`,
         ),
         api<Prompt[]>(`/api/devices/${id}/prompts`),
       ]);
@@ -60,16 +60,24 @@ export default function DeviceDetailPage({
       const alertsData: Alert[] = eventsData
         .filter(
           (event) =>
-            event.severity === "warning" || event.severity === "critical"
+            event.severity === "warning" || event.severity === "critical",
         )
-        .map((event) => ({
-          id: event.id,
-          device_id: event.device_id,
-          alert_type: event.event_type,
-          severity: event.severity as "warning" | "critical",
-          matched_pattern: event.description,
-          timestamp: event.timestamp,
-        }));
+        .map((event) => {
+          // Type guard for severity
+          const severity: "warning" | "critical" =
+            event.severity === "warning" || event.severity === "critical"
+              ? event.severity
+              : "warning"; // Fallback, but filter ensures it's warning or critical
+
+          return {
+            id: event.id,
+            device_id: event.device_id ?? null,
+            alert_type: event.event_type,
+            severity,
+            matched_pattern: event.description,
+            timestamp: event.timestamp,
+          };
+        });
 
       setDevice(deviceData);
       setEvents(eventsData);
@@ -184,8 +192,8 @@ export default function DeviceDetailPage({
                       event.severity === "critical"
                         ? "bg-destructive/10 border-destructive/50"
                         : event.severity === "warning"
-                        ? "bg-yellow-500/10 border-yellow-500/50"
-                        : "bg-primary/10 border-primary/50"
+                          ? "bg-yellow-500/10 border-yellow-500/50"
+                          : "bg-primary/10 border-primary/50"
                     }`}
                   >
                     <Activity
@@ -193,8 +201,8 @@ export default function DeviceDetailPage({
                         event.severity === "critical"
                           ? "text-destructive"
                           : event.severity === "warning"
-                          ? "text-yellow-500"
-                          : "text-primary"
+                            ? "text-yellow-500"
+                            : "text-primary"
                       }`}
                     />
                   </div>

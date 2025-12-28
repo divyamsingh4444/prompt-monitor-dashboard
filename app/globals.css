@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* stylelint-disable-next-line at-rule-no-unknown */
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -130,7 +131,8 @@
 
   body {
     @apply bg-background text-foreground antialiased relative overflow-x-hidden;
-    background-image: linear-gradient(rgba(0, 255, 255, 0.05) 1px, transparent 1px),
+    background-image:
+      linear-gradient(rgba(0, 255, 255, 0.05) 1px, transparent 1px),
       linear-gradient(90deg, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
     background-size: 40px 40px;
   }
@@ -144,10 +146,16 @@
     left: 0;
     bottom: 0;
     right: 0;
-    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
-      linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    background:
+      linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+      linear-gradient(90deg,
+        rgba(255, 0, 0, 0.06),
+        rgba(0, 255, 0, 0.02),
+        rgba(0, 0, 255, 0.06));
     z-index: 1000;
-    background-size: 100% 2px, 3px 100%;
+    background-size:
+      100% 2px,
+      3px 100%;
     pointer-events: none;
     opacity: 0.15;
   }
@@ -155,24 +163,35 @@
 
 @layer utilities {
   .neon-border {
-    box-shadow: 0 0 5px var(--primary), inset 0 0 2px var(--primary);
+    box-shadow:
+      0 0 5px var(--primary),
+      inset 0 0 2px var(--primary);
     border: 1px solid var(--primary);
   }
+
   .neon-text {
     text-shadow: 0 0 5px var(--primary);
   }
+
   .neon-border-magenta {
-    box-shadow: 0 0 5px var(--secondary), inset 0 0 2px var(--secondary);
+    box-shadow:
+      0 0 5px var(--secondary),
+      inset 0 0 2px var(--secondary);
     border: 1px solid var(--secondary);
   }
+
   .neon-text-magenta {
     text-shadow: 0 0 5px var(--secondary);
   }
+
   .scanline {
     width: 100%;
     height: 100px;
     z-index: 999;
-    background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(0, 255, 255, 0.1) 50%, rgba(0, 0, 0, 0) 100%);
+    background: linear-gradient(0deg,
+        rgba(0, 0, 0, 0) 0%,
+        rgba(0, 255, 255, 0.1) 50%,
+        rgba(0, 0, 0, 0) 100%);
     opacity: 0.1;
     position: absolute;
     bottom: 100%;
@@ -188,7 +207,7 @@
 
   .cyber-card::before {
     content: "";
-    @apply absolute top-0 left-0 w-1 h-full bg-primary shadow-[0_0_10px_rgba(0,255,255,0.8)];
+    @apply absolute top-0 left-0 w-1 h-full bg-primary shadow-[0_0_10px_rgba(0, 255, 255, 0.8)];
   }
 
   .neon-text {
@@ -209,6 +228,7 @@
   0% {
     bottom: 100%;
   }
+
   100% {
     bottom: -100px;
   }
@@ -218,18 +238,23 @@
   0% {
     transform: translate(0);
   }
+
   20% {
     transform: translate(-2px, 2px);
   }
+
   40% {
     transform: translate(-2px, -2px);
   }
+
   60% {
     transform: translate(2px, 2px);
   }
+
   80% {
     transform: translate(2px, -2px);
   }
+
   100% {
     transform: translate(0);
   }
@@ -239,6 +264,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -249,6 +275,7 @@
     transform: translateY(10px);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;

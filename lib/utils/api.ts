@@ -3,7 +3,10 @@
  * External apps should call the API routes directly
  */
 
-export async function api<T>(endpoint: string, options?: RequestInit): Promise<T> {
+export async function api<T>(
+  endpoint: string,
+  options?: RequestInit,
+): Promise<T> {
   const response = await fetch(endpoint, {
     ...options,
     headers: {
@@ -18,4 +21,3 @@ export async function api<T>(endpoint: string, options?: RequestInit): Promise<T
 
   return response.json();
 }
-

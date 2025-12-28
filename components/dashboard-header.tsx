@@ -3,7 +3,7 @@
 import { RefreshCw, Search, LayoutGrid, List } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import type { DashboardStats } from "@/app/api/types";
+import type { DashboardStats } from "@/src/generated/types";
 
 interface DashboardHeaderProps {
   stats: DashboardStats;

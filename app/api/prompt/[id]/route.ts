@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import type { Prompt } from "@/app/api/types";
+import type { Prompt } from "@/src/generated/types";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -19,7 +19,7 @@ export async function GET(
       if (error.code === "PGRST116") {
         return NextResponse.json(
           { error: "Prompt not found" },
-          { status: 404 }
+          { status: 404 },
         );
       }
       throw error;
@@ -28,15 +28,15 @@ export async function GET(
     // Transform database prompt to frontend Prompt type
     const prompt: Prompt = {
       id: data.id,
-      device_id: data.device_id,
+      device_id: data.device_id ?? null,
       site: data.site || "Unknown",
       prompt_text: data.prompt || "",
       timestamp:
         data.timestamp || new Date(data.created_at || Date.now()).getTime(),
       browser: data.browser_name || "",
       is_flagged: false, // Not in schema
-      url: data.url,
-      username: data.username,
+      url: data.url ?? null,
+      username: data.username ?? null,
     };
 
     return NextResponse.json(prompt);
@@ -44,7 +44,7 @@ export async function GET(
     console.error("Error fetching prompt:", error);
     return NextResponse.json(
       { error: "Failed to fetch prompt" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -43,7 +43,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
         "px-2 py-0.5 text-[10px] font-mono border rounded-sm flex items-center gap-1.5",
         config.color,
         config.glow,
-        className
+        className,
       )}
     >
       <span
@@ -52,12 +52,12 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
           status === "active"
             ? "bg-accent"
             : status === "inactive"
-            ? "bg-muted-foreground"
-            : status === "warning"
-            ? "bg-yellow-400"
-            : status === "compliance"
-            ? "bg-primary"
-            : "bg-destructive"
+              ? "bg-muted-foreground"
+              : status === "warning"
+                ? "bg-yellow-400"
+                : status === "compliance"
+                  ? "bg-primary"
+                  : "bg-destructive",
         )}
       />
       {config.label}
