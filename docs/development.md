@@ -286,6 +286,7 @@ prompt-monitor-dashboard/
 - **One component per file**
 - **Co-locate related files** (e.g., component + types)
 - **Group imports**: External → Internal → Types
+
   ```typescript
   // External
   import { NextRequest, NextResponse } from "next/server";
