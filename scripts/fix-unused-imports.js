@@ -10,7 +10,7 @@ const path = require("path");
 
 const dbTypesPath = path.join(
   __dirname,
-  "../src/generated/types/DatabaseTypes.ts"
+  "../src/generated/types/DatabaseTypes.ts",
 );
 
 if (!fs.existsSync(dbTypesPath)) {
@@ -36,7 +36,7 @@ if (content.includes("decodeArray") && !content.includes("decodeArray(")) {
 
     content = content.replace(
       /import \{ [^}]+\} from "type-decoder";/,
-      newImport
+      newImport,
     );
   }
 
