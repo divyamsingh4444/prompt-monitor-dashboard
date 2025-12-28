@@ -78,15 +78,15 @@ export default function DashboardPage() {
 
       {/* Status Filters */}
       {!loading && devices.length > 0 && (
-        <div className="flex flex-wrap items-center gap-3 mb-6">
-          <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground uppercase tracking-wider">
-            <Filter className="w-3.5 h-3.5" />
+        <div className="flex flex-wrap items-center gap-3 mb-8">
+          <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground uppercase tracking-wider opacity-80">
+            <Filter className="w-3.5 h-3.5 text-primary/60" />
             <span>Filter:</span>
           </div>
           <Button
             variant={statusFilter === null ? "default" : "outline"}
             size="sm"
-            className="h-7 px-3 text-xs font-mono uppercase tracking-wider"
+            className="h-8 px-4 text-xs font-mono uppercase tracking-wider transition-all duration-300 hover:scale-105"
             onClick={() => setStatusFilter(null)}
           >
             All ({devices.length})
@@ -96,7 +96,7 @@ export default function DashboardPage() {
               key={status}
               variant={statusFilter === status ? "default" : "outline"}
               size="sm"
-              className="h-7 px-3 text-xs font-mono uppercase tracking-wider"
+              className="h-8 px-4 text-xs font-mono uppercase tracking-wider transition-all duration-300 hover:scale-105"
               onClick={() =>
                 setStatusFilter(statusFilter === status ? null : status)
               }
@@ -108,7 +108,7 @@ export default function DashboardPage() {
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 px-2 text-xs"
+              className="h-8 px-2 text-xs hover:bg-primary/10 transition-all duration-300"
               onClick={() => setStatusFilter(null)}
             >
               <X className="w-3.5 h-3.5" />
@@ -119,16 +119,16 @@ export default function DashboardPage() {
 
       {/* Loading State */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-8">
           <div className="relative">
-            <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse" />
-            <Loader2 className="relative w-16 h-16 text-primary animate-spin" />
+            <div className="absolute inset-0 bg-primary/30 blur-2xl rounded-full animate-pulse pulse-glow" />
+            <Loader2 className="relative w-20 h-20 text-primary animate-spin drop-shadow-[0_0_20px_rgba(0,255,255,0.8)]" />
           </div>
-          <div className="text-center space-y-2">
-            <p className="font-mono text-primary animate-pulse tracking-widest text-sm">
+          <div className="text-center space-y-3">
+            <p className="font-mono text-primary animate-pulse tracking-widest text-base neon-text">
               INITIALIZING SYSTEM...
             </p>
-            <p className="font-mono text-muted-foreground text-xs tracking-wider">
+            <p className="font-mono text-muted-foreground text-xs tracking-wider opacity-80">
               Scanning network terminals...
             </p>
           </div>
@@ -160,16 +160,16 @@ export default function DashboardPage() {
 
           {/* Empty State */}
           {filteredDevices.length === 0 && !loading && (
-            <div className="flex flex-col items-center justify-center min-h-[50vh] py-20">
-              <div className="cyber-card border-dashed p-12 max-w-md w-full text-center space-y-4">
-                <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center border border-primary/30">
-                  <Filter className="w-8 h-8 text-primary/50" />
+            <div className="flex flex-col items-center justify-center min-h-[50vh] py-24">
+              <div className="cyber-card border-dashed border-primary/30 p-14 max-w-lg w-full text-center space-y-6 hover:border-primary/50 transition-all duration-300">
+                <div className="w-20 h-20 mx-auto bg-primary/10 rounded-full flex items-center justify-center border border-primary/30 hover:bg-primary/20 hover:border-primary/50 transition-all duration-300">
+                  <Filter className="w-10 h-10 text-primary/60 drop-shadow-[0_0_8px_rgba(0,255,255,0.4)]" />
                 </div>
-                <div className="space-y-2">
-                  <p className="font-mono text-primary font-bold tracking-widest text-sm uppercase">
+                <div className="space-y-3">
+                  <p className="font-mono text-primary font-bold tracking-widest text-base uppercase neon-text">
                     No Devices Found
                   </p>
-                  <p className="font-mono text-muted-foreground text-xs leading-relaxed">
+                  <p className="font-mono text-muted-foreground text-sm leading-relaxed opacity-90 max-w-md mx-auto">
                     {searchQuery || statusFilter
                       ? "Try adjusting your search or filter criteria"
                       : "No terminals detected in network scan"}
@@ -179,7 +179,7 @@ export default function DashboardPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="mt-4 font-mono text-xs uppercase tracking-wider"
+                    className="mt-6 font-mono text-xs uppercase tracking-wider border-primary/40 hover:border-primary/70 hover:bg-primary/10 transition-all duration-300"
                     onClick={() => {
                       setSearchQuery("");
                       setStatusFilter(null);
@@ -195,14 +195,16 @@ export default function DashboardPage() {
       )}
 
       {/* Footer / CRT Decoration */}
-      <footer className="mt-16 lg:mt-20 border-t border-primary/20 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4 opacity-50">
-        <div className="text-[10px] font-mono uppercase tracking-widest">
+      <footer className="mt-20 lg:mt-24 border-t border-primary/30 pt-8 flex flex-col sm:flex-row justify-between items-center gap-6 opacity-60 hover:opacity-80 transition-opacity duration-300">
+        <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
           SYS_LOG: NETWORK_MONITOR_v1.4.2
         </div>
-        <div className="text-[10px] font-mono uppercase tracking-widest flex flex-wrap gap-4 justify-center">
+        <div className="text-[10px] font-mono uppercase tracking-widest flex flex-wrap gap-4 justify-center text-muted-foreground">
           <span>ENCRYPTION: AES-256</span>
           <span>STATUS: STABLE</span>
-          <span className="text-accent">ACTIVE: {stats.active_devices}</span>
+          <span className="text-accent neon-text">
+            ACTIVE: {stats.active_devices}
+          </span>
         </div>
       </footer>
     </div>
