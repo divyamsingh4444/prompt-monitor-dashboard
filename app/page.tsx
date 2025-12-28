@@ -1,70 +1,70 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useMemo } from "react"
-import { api } from "../lib/utils/api"
-import type { Device, DashboardStats } from "./api/types"
-import { DashboardHeader } from "../components/dashboard-header"
-import { DeviceCard } from "../components/device-card"
-import { useAutoRefresh } from "../lib/hooks/use-auto-refresh"
-import { Loader2, Filter, X } from "lucide-react"
-import { Button } from "../components/ui/button"
+import { useState, useEffect, useMemo } from "react";
+import { api } from "@/lib/utils/api";
+import type { Device, DashboardStats } from "./api/types";
+import { DashboardHeader } from "@/components/dashboard-header";
+import { DeviceCard } from "@/components/device-card";
+import { useAutoRefresh } from "@/lib/hooks/use-auto-refresh";
+import { Loader2, Filter, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function DashboardPage() {
-  const [devices, setDevices] = useState<Device[]>([])
+  const [devices, setDevices] = useState<Device[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
     total_devices: 0,
     active_devices: 0,
     inactive_devices: 0,
     prompts_today: 0,
-  })
-  const [loading, setLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState<string | null>(null)
+  });
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
 
   const fetchData = async () => {
     try {
       const [devicesData, statsData] = await Promise.all([
         api<Device[]>("/api/devices"),
         api<DashboardStats>("/api/stats"),
-      ])
-      setDevices(devicesData)
-      setStats(statsData)
+      ]);
+      setDevices(devicesData);
+      setStats(statsData);
     } catch (error) {
-      console.error("[v0] Dashboard fetch failed:", error)
+      console.error("[v0] Dashboard fetch failed:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const { refresh, isRefreshing } = useAutoRefresh({
     onRefresh: fetchData,
     interval: 60000,
-  })
+  });
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
   const filteredDevices = useMemo(() => {
     return devices.filter((d) => {
       const matchesSearch =
         d.hostname.toLowerCase().includes(searchQuery.toLowerCase()) ||
         d.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        d.ip_address.includes(searchQuery)
-      
-      const matchesStatus = !statusFilter || d.status === statusFilter
-      
-      return matchesSearch && matchesStatus
-    })
-  }, [devices, searchQuery, statusFilter])
+        d.ip_address.includes(searchQuery);
+
+      const matchesStatus = !statusFilter || d.status === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [devices, searchQuery, statusFilter]);
 
   const statusCounts = useMemo(() => {
-    const counts: Record<string, number> = {}
+    const counts: Record<string, number> = {};
     devices.forEach((d) => {
-      counts[d.status] = (counts[d.status] || 0) + 1
-    })
-    return counts
-  }, [devices])
+      counts[d.status] = (counts[d.status] || 0) + 1;
+    });
+    return counts;
+  }, [devices]);
 
   return (
     <div className="container mx-auto px-4 py-6 lg:py-8">
@@ -97,7 +97,9 @@ export default function DashboardPage() {
               variant={statusFilter === status ? "default" : "outline"}
               size="sm"
               className="h-7 px-3 text-xs font-mono uppercase tracking-wider"
-              onClick={() => setStatusFilter(statusFilter === status ? null : status)}
+              onClick={() =>
+                setStatusFilter(statusFilter === status ? null : status)
+              }
             >
               {status} ({count})
             </Button>
@@ -137,7 +139,8 @@ export default function DashboardPage() {
           {filteredDevices.length > 0 && (
             <div className="mb-4">
               <p className="text-xs font-mono text-muted-foreground uppercase tracking-wider">
-                Showing {filteredDevices.length} of {devices.length} device{devices.length !== 1 ? "s" : ""}
+                Showing {filteredDevices.length} of {devices.length} device
+                {devices.length !== 1 ? "s" : ""}
               </p>
             </div>
           )}
@@ -178,8 +181,8 @@ export default function DashboardPage() {
                     size="sm"
                     className="mt-4 font-mono text-xs uppercase tracking-wider"
                     onClick={() => {
-                      setSearchQuery("")
-                      setStatusFilter(null)
+                      setSearchQuery("");
+                      setStatusFilter(null);
                     }}
                   >
                     Clear Filters
@@ -203,5 +206,5 @@ export default function DashboardPage() {
         </div>
       </footer>
     </div>
-  )
+  );
 }

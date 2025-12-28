@@ -1,11 +1,11 @@
-import Link from "next/link"
-import { Monitor, Cpu, Globe, Clock, MessageSquare } from "lucide-react"
-import type { Device } from "../app/api/types"
-import { StatusBadge } from "./status-badge"
-import { formatTimeAgo } from "../lib/utils/time"
+import Link from "next/link";
+import { Monitor, Cpu, Globe, Clock, MessageSquare } from "lucide-react";
+import type { Device } from "@/app/api/types";
+import { StatusBadge } from "./status-badge";
+import { formatTimeAgo } from "@/lib/utils/time";
 
 interface DeviceCardProps {
-  device: Device
+  device: Device;
 }
 
 export function DeviceCard({ device }: DeviceCardProps) {
@@ -14,7 +14,7 @@ export function DeviceCard({ device }: DeviceCardProps) {
       <div className="cyber-card p-5 h-full cursor-pointer hover:border-primary/60 hover:shadow-[0_0_20px_rgba(0,255,255,0.15)] transition-all duration-300 group relative overflow-hidden">
         {/* Hover glow effect */}
         <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/5 transition-colors duration-300 pointer-events-none" />
-        
+
         <div className="relative z-10">
           <div className="flex justify-between items-start mb-5">
             <div className="flex gap-3 flex-1 min-w-0">
@@ -46,7 +46,9 @@ export function DeviceCard({ device }: DeviceCardProps) {
             </div>
             <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
               <Clock className="w-3.5 h-3.5 shrink-0" />
-              <span className="truncate">{formatTimeAgo(device.last_seen)}</span>
+              <span className="truncate">
+                {formatTimeAgo(device.last_seen)}
+              </span>
             </div>
             <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
               <MessageSquare className="w-3.5 h-3.5 shrink-0" />
@@ -59,7 +61,13 @@ export function DeviceCard({ device }: DeviceCardProps) {
               <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider mb-1">
                 Today
               </p>
-              <p className={`text-xl font-mono font-bold ${device.prompts_today > 0 ? "text-accent neon-text" : "text-muted-foreground"}`}>
+              <p
+                className={`text-xl font-mono font-bold ${
+                  device.prompts_today > 0
+                    ? "text-accent neon-text"
+                    : "text-muted-foreground"
+                }`}
+              >
                 {device.prompts_today}
               </p>
             </div>
@@ -68,7 +76,13 @@ export function DeviceCard({ device }: DeviceCardProps) {
               <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider mb-1">
                 Total
               </p>
-              <p className={`text-xl font-mono font-bold ${device.total_prompts > 0 ? "text-primary neon-text" : "text-muted-foreground"}`}>
+              <p
+                className={`text-xl font-mono font-bold ${
+                  device.total_prompts > 0
+                    ? "text-primary neon-text"
+                    : "text-muted-foreground"
+                }`}
+              >
                 {device.total_prompts}
               </p>
             </div>
@@ -82,5 +96,5 @@ export function DeviceCard({ device }: DeviceCardProps) {
         </div>
       </div>
     </Link>
-  )
+  );
 }

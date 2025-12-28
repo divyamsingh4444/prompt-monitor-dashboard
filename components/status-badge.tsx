@@ -1,8 +1,8 @@
-import { cn } from "../lib/utils"
+import { cn } from "@/lib/utils";
 
 interface StatusBadgeProps {
-  status: "active" | "inactive" | "warning" | "error" | "compliance"
-  className?: string
+  status: "active" | "inactive" | "warning" | "error" | "compliance";
+  className?: string;
 }
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {
@@ -14,7 +14,8 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
     },
     inactive: {
       label: "OFFLINE",
-      color: "text-muted-foreground border-muted-foreground/50 bg-muted-foreground/10",
+      color:
+        "text-muted-foreground border-muted-foreground/50 bg-muted-foreground/10",
       glow: "",
     },
     warning: {
@@ -32,9 +33,9 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
       color: "text-primary border-primary/50 bg-primary/10",
       glow: "shadow-[0_0_8px_rgba(0,255,255,0.4)]",
     },
-  }
+  };
 
-  const config = configs[status] || configs.inactive
+  const config = configs[status] || configs.inactive;
 
   return (
     <div
@@ -42,7 +43,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
         "px-2 py-0.5 text-[10px] font-mono border rounded-sm flex items-center gap-1.5",
         config.color,
         config.glow,
-        className,
+        className
       )}
     >
       <span
@@ -51,15 +52,15 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
           status === "active"
             ? "bg-accent"
             : status === "inactive"
-              ? "bg-muted-foreground"
-              : status === "warning"
-                ? "bg-yellow-400"
-                : status === "compliance"
-                  ? "bg-primary"
-                  : "bg-destructive",
+            ? "bg-muted-foreground"
+            : status === "warning"
+            ? "bg-yellow-400"
+            : status === "compliance"
+            ? "bg-primary"
+            : "bg-destructive"
         )}
       />
       {config.label}
     </div>
-  )
+  );
 }
