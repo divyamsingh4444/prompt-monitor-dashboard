@@ -60,8 +60,7 @@ paths:
           description: Filter by device status
           required: false
           schema:
-            type: string
-            enum: [active, inactive, warning, error, compliance]
+            $ref: "#/components/schemas/DeviceStatus"
       responses:
         "200":
           description: Successful response
@@ -238,6 +237,11 @@ paths:
 
 components:
   schemas:
+    DeviceStatus:
+      type: string
+      enum: [active, inactive, warning, error, compliance]
+      description: Device status
+
     StatsResponse:
       type: object
       properties:
@@ -269,9 +273,7 @@ components:
           type: string
           description: Device hostname
         status:
-          type: string
-          enum: [active, inactive, warning, error, compliance]
-          description: Device status
+          $ref: "#/components/schemas/DeviceStatus"
         os:
           type: string
           description: Operating system
@@ -473,3 +475,35 @@ components:
           description: Error message
       required:
         - error
+
+    Alert:
+      type: object
+      description: Alert derived from device events with warning or critical severity
+      properties:
+        id:
+          type: string
+          description: Alert identifier
+        device_id:
+          type: string
+          nullable: true
+          description: Associated device ID
+        alert_type:
+          type: string
+          description: Type of alert
+        severity:
+          type: string
+          enum: [warning, critical]
+          description: Alert severity
+        matched_pattern:
+          type: string
+          description: Pattern that triggered the alert
+        timestamp:
+          type: integer
+          format: int64
+          description: Timestamp in epoch milliseconds
+      required:
+        - id
+        - alert_type
+        - severity
+        - matched_pattern
+        - timestamp

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import type { DeviceEvent, DatabaseDeviceEvent } from "@/types";
+import type { DatabaseDeviceEvent } from "@/types";
+import { DeviceEvent } from "@/src/generated/api";
 import { decodeDeviceEventMetadata, decodeSeverity } from "@/types";
 
 export async function GET(
@@ -28,8 +29,14 @@ export async function GET(
 
       // Decode severity with fallback to "info"
       const decodedSeverity = decodeSeverity(e.severity);
-      const severity: "info" | "warning" | "critical" =
-        decodedSeverity ?? "info";
+      const severityValue = decodedSeverity ?? "info";
+      // Map to generated enum
+      const severity =
+        severityValue === "critical"
+          ? DeviceEvent.severity.CRITICAL
+          : severityValue === "warning"
+          ? DeviceEvent.severity.WARNING
+          : DeviceEvent.severity.INFO;
 
       return {
         id: e.id,
@@ -52,9 +59,13 @@ export async function GET(
     // Calculate stats
     const stats = {
       total: events.length,
-      critical: events.filter((e) => e.severity === "critical").length,
-      warning: events.filter((e) => e.severity === "warning").length,
-      info: events.filter((e) => e.severity === "info").length,
+      critical: events.filter(
+        (e) => e.severity === DeviceEvent.severity.CRITICAL
+      ).length,
+      warning: events.filter((e) => e.severity === DeviceEvent.severity.WARNING)
+        .length,
+      info: events.filter((e) => e.severity === DeviceEvent.severity.INFO)
+        .length,
     };
 
     return NextResponse.json({ events, stats });

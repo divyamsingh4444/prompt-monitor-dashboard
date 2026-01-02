@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { api } from "@/lib/utils/api";
-import type { Device, DashboardStats } from "@/types";
+import { apiClient, ApiError } from "@/lib/api-client";
+import { DeviceStatus, type Device, type StatsResponse } from "@/types";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { DeviceCard } from "@/components/device-card";
 import { useAutoRefresh } from "@/lib/hooks/use-auto-refresh";
@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 
 export default function DashboardPage() {
   const [devices, setDevices] = useState<Device[]>([]);
-  const [stats, setStats] = useState<DashboardStats>({
+  const [stats, setStats] = useState<StatsResponse>({
     total_devices: 0,
     active_devices: 0,
     inactive_devices: 0,
@@ -19,18 +19,25 @@ export default function DashboardPage() {
   });
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<DeviceStatus | null>(null);
 
   const fetchData = async () => {
     try {
       const [devicesData, statsData] = await Promise.all([
-        api<Device[]>("/api/devices"),
-        api<DashboardStats>("/api/stats"),
+        apiClient.getDevices({
+          search: searchQuery || undefined,
+          status: statusFilter || undefined,
+        }),
+        apiClient.getStats(),
       ]);
       setDevices(devicesData);
       setStats(statsData);
     } catch (error) {
-      console.error("[v0] Dashboard fetch failed:", error);
+      if (error instanceof ApiError) {
+        console.error(`API Error ${error.status}:`, error.message);
+      } else {
+        console.error("[v0] Dashboard fetch failed:", error);
+      }
     } finally {
       setLoading(false);
     }
@@ -43,7 +50,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [searchQuery, statusFilter]);
 
   const filteredDevices = useMemo(() => {
     return devices.filter((d) => {
@@ -91,19 +98,23 @@ export default function DashboardPage() {
           >
             All ({devices.length})
           </Button>
-          {Object.entries(statusCounts).map(([status, count]) => (
-            <Button
-              key={status}
-              variant={statusFilter === status ? "default" : "outline"}
-              size="sm"
-              className="h-8 px-4 text-xs font-mono uppercase tracking-wider transition-all duration-300 hover:scale-105"
-              onClick={() =>
-                setStatusFilter(statusFilter === status ? null : status)
-              }
-            >
-              {status} ({count})
-            </Button>
-          ))}
+          {Object.values(DeviceStatus).map((status) => {
+            const count = statusCounts[status] || 0;
+            if (count === 0) return null;
+            return (
+              <Button
+                key={status}
+                variant={statusFilter === status ? "default" : "outline"}
+                size="sm"
+                className="h-8 px-4 text-xs font-mono uppercase tracking-wider transition-all duration-300 hover:scale-105"
+                onClick={() =>
+                  setStatusFilter(statusFilter === status ? null : status)
+                }
+              >
+                {status} ({count})
+              </Button>
+            );
+          })}
           {statusFilter && (
             <Button
               variant="ghost"

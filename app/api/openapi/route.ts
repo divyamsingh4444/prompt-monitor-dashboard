@@ -19,7 +19,7 @@ export async function GET() {
     console.error("Error loading OpenAPI spec:", error);
     return NextResponse.json(
       { error: "Failed to load API specification" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

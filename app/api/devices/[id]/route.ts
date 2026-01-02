@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import type { Device, PromptCount, DatabaseDevice } from "@/types";
-import { decodeSupabaseError } from "@/types";
+import { DeviceStatus, decodeSupabaseError } from "@/types";
 import { decodeStringArray } from "@/lib/utils/decoders";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
@@ -22,7 +22,7 @@ export async function GET(
       if (decodedError && decodedError.code === "PGRST116") {
         return NextResponse.json(
           { error: "Device not found" },
-          { status: 404 },
+          { status: 404 }
         );
       }
       throw error;
@@ -68,7 +68,7 @@ export async function GET(
       ? new Date(deviceData.last_heartbeat)
       : null;
     const isActive = lastHeartbeat && lastHeartbeat >= fiveMinutesAgo;
-    const deviceStatus = isActive ? "active" : "inactive";
+    const deviceStatus = isActive ? DeviceStatus.ACTIVE : DeviceStatus.INACTIVE;
 
     // Extract IP from JSONB array using decoder
     const ips = decodeStringArray(deviceData.ips);
@@ -97,7 +97,7 @@ export async function GET(
     console.error("Error fetching device:", error);
     return NextResponse.json(
       { error: "Failed to fetch device" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

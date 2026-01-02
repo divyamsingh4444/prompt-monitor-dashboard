@@ -5,7 +5,7 @@
 
 export async function api<T>(
   endpoint: string,
-  options?: RequestInit
+  options?: RequestInit,
 ): Promise<T> {
   const response = await fetch(endpoint, {
     ...options,

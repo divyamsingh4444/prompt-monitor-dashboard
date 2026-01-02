@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import type { Device, PromptCount, DatabaseDevice } from "@/types";
+import { DeviceStatus } from "@/types";
 import { decodeStringArray } from "@/lib/utils/decoders";
 
 export async function GET(request: NextRequest) {
@@ -60,7 +61,9 @@ export async function GET(request: NextRequest) {
         ? new Date(d.last_heartbeat)
         : null;
       const isActive = lastHeartbeat && lastHeartbeat >= fiveMinutesAgo;
-      const deviceStatus = isActive ? "active" : "inactive";
+      const deviceStatus = isActive
+        ? DeviceStatus.ACTIVE
+        : DeviceStatus.INACTIVE;
 
       // Extract IP from JSONB array using decoder
       const ips = decodeStringArray(d.ips);

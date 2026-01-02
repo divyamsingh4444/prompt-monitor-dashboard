@@ -318,14 +318,16 @@ prompt-monitor-dashboard/
 
 ### Importing Types
 
-**Always import from `@/types`:**
+**Always import from `@/types` or `@/lib/api-client`:**
 
 ```typescript
-// ✅ Correct
+// ✅ Correct - API types from OpenAPI
+import { apiClient, type Device, type DashboardStats } from "@/lib/api-client";
 import type { Device, DatabaseDevice, Tables } from "@/types";
 
-// ❌ Wrong
-import type { Device } from "@/src/generated/types/ApiTypes";
+// ❌ Wrong - Don't import directly from generated files
+import type { Device } from "@/src/generated/api/models/Device";
+import type { Device } from "@/src/generated/types/ApiTypes"; // Deprecated
 ```
 
 ### Using Database Types

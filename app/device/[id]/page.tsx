@@ -1,7 +1,14 @@
 "use client";
 
 import { use, useState, useEffect, useCallback } from "react";
-import { api } from "@/lib/utils/api";
+import { apiClient, ApiError } from "@/lib/api-client";
+import {
+  DeviceEvent,
+  Alert,
+  type Device,
+  type Prompt,
+  type Json,
+} from "@/types";
 import { useAutoRefresh } from "@/lib/hooks/use-auto-refresh";
 import {
   ChevronLeft,
@@ -19,7 +26,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatusBadge } from "@/components/status-badge";
 import { DetailModal } from "@/components/detail-modal";
 import { formatTimeAgo, formatTimestamp } from "@/lib/utils/time";
-import type { Device, DeviceEvent, Prompt, Alert, Json } from "@/types";
 
 export default function DeviceDetailPage({
   params,
@@ -47,11 +53,9 @@ export default function DeviceDetailPage({
     try {
       // Get events first (used for both events and alerts)
       const [deviceData, eventsResponse, promptsData] = await Promise.all([
-        api<Device>(`/api/devices/${id}`),
-        api<{ events: DeviceEvent[]; stats: object }>(
-          `/api/devices/${id}/events`
-        ),
-        api<Prompt[]>(`/api/devices/${id}/prompts`),
+        apiClient.getDevice(id),
+        apiClient.getDeviceEvents(id),
+        apiClient.getDevicePrompts(id),
       ]);
 
       const eventsData = eventsResponse.events || [];
@@ -59,15 +63,16 @@ export default function DeviceDetailPage({
       // Filter events to get alerts
       const alertsData: Alert[] = eventsData
         .filter(
-          (event) =>
-            event.severity === "warning" || event.severity === "critical"
+          (event: DeviceEvent) =>
+            event.severity === DeviceEvent.severity.WARNING ||
+            event.severity === DeviceEvent.severity.CRITICAL
         )
-        .map((event) => {
-          // Type guard for severity
-          const severity: "warning" | "critical" =
-            event.severity === "warning" || event.severity === "critical"
-              ? event.severity
-              : "warning"; // Fallback, but filter ensures it's warning or critical
+        .map((event: DeviceEvent) => {
+          // Map DeviceEvent severity to Alert severity
+          const severity =
+            event.severity === DeviceEvent.severity.CRITICAL
+              ? Alert.severity.CRITICAL
+              : Alert.severity.WARNING;
 
           return {
             id: event.id,
@@ -83,8 +88,12 @@ export default function DeviceDetailPage({
       setEvents(eventsData);
       setPrompts(promptsData);
       setAlerts(alertsData);
-    } catch (error) {
-      console.error("[v0] Device detail fetch failed:", error);
+    } catch (error: unknown) {
+      if (error instanceof ApiError) {
+        console.error(`API Error ${error.status}:`, error.message);
+      } else {
+        console.error("[v0] Device detail fetch failed:", error);
+      }
     } finally {
       setLoading(false);
     }

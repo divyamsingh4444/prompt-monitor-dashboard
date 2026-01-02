@@ -3,10 +3,10 @@
 import { RefreshCw, Search, LayoutGrid, List } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import type { DashboardStats } from "@/types";
+import type { StatsResponse } from "@/types";
 
 interface DashboardHeaderProps {
-  stats: DashboardStats;
+  stats: StatsResponse;
   onRefresh: () => void;
   isRefreshing: boolean;
   searchQuery: string;
