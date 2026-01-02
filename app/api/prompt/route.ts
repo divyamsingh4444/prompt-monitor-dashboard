@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import type { CapturePromptRequest, CapturePromptResponse } from "@/types";
+import { requireAuth, AuthError } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   try {
+    // Authenticate using JWT token
+    const { deviceId } = await requireAuth(request);
+
     const body: CapturePromptRequest = await request.json();
 
     // Validate required fields
@@ -20,30 +24,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // For now, we need to get device_id from somewhere
-    // In the old backend, it comes from the JWT token
-    // We'll need to add a way to identify the device
-    // For now, accept device_id in the body or headers
-    let deviceId = request.headers.get("X-Device-ID");
-
-    // Also check if there's an instance_id we can use to look up the device
-    if (!deviceId && body.instance_id) {
-      // Look up device_id from browser_instances table
-      const { data: browserInstance } = await supabase
-        .from("browser_instances")
-        .select("device_id")
-        .eq("instance_id", body.instance_id)
-        .single();
-
-      if (browserInstance) {
-        deviceId = browserInstance.device_id;
-      }
-    }
-
     // Insert the prompt
     const { error: insertError } = await supabase.from("prompts").insert({
       id: body.id,
-      device_id: deviceId || null,
+      device_id: deviceId,
       site: body.site,
       url: body.url,
       prompt: body.prompt,
@@ -81,6 +65,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.statusCode },
+      );
+    }
+
     console.error("Prompt capture failed:", error);
     return NextResponse.json(
       { error: "Prompt capture failed" },

@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import type { RegisterBrowserRequest, RegisterBrowserResponse } from "@/types";
+import { requireAuth, AuthError } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   try {
+    // Authenticate using JWT token
+    const { deviceId } = await requireAuth(request);
+
     const body: RegisterBrowserRequest = await request.json();
 
     // Validate required fields
@@ -14,29 +18,6 @@ export async function POST(request: NextRequest) {
             "Missing required fields: instance_id, browser_name, profile_name",
         },
         { status: 400 }
-      );
-    }
-
-    // Get device_id from header (temporary until auth is implemented)
-    const deviceId = request.headers.get("X-Device-ID");
-    if (!deviceId) {
-      return NextResponse.json(
-        { error: "Missing X-Device-ID header" },
-        { status: 400 }
-      );
-    }
-
-    // Check if device exists
-    const { data: existingDevice } = await supabase
-      .from("devices")
-      .select("device_id")
-      .eq("device_id", deviceId)
-      .single();
-
-    if (!existingDevice) {
-      return NextResponse.json(
-        { error: "Device not registered" },
-        { status: 404 }
       );
     }
 
@@ -94,6 +75,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.statusCode }
+      );
+    }
+
     console.error("Browser registration failed:", error);
     return NextResponse.json(
       { error: "Browser registration failed" },

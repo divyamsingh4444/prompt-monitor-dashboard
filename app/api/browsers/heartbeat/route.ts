@@ -4,16 +4,20 @@ import type {
   BrowserHeartbeatRequest,
   BrowserHeartbeatResponse,
 } from "@/types";
+import { requireAuth, AuthError } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   try {
+    // Authenticate using JWT token
+    await requireAuth(request);
+
     const body: BrowserHeartbeatRequest = await request.json();
 
     // Validate required fields
     if (!body.instance_id) {
       return NextResponse.json(
         { error: "Missing required field: instance_id" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -31,7 +35,7 @@ export async function POST(request: NextRequest) {
     if (!existingInstance) {
       return NextResponse.json(
         { error: "Browser instance not registered" },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
@@ -53,10 +57,17 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.statusCode }
+      );
+    }
+
     console.error("Browser heartbeat failed:", error);
     return NextResponse.json(
       { error: "Browser heartbeat failed" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

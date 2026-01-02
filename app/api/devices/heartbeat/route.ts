@@ -1,38 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import type { HeartbeatRequest, HeartbeatResponse } from "@/types";
+import { requireAuth, AuthError } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   try {
-    const body: HeartbeatRequest = await request.json();
+    // Authenticate using JWT token
+    const { deviceId } = await requireAuth(request);
 
-    // Validate required fields
-    if (!body.device_id) {
-      return NextResponse.json(
-        { error: "Missing required field: device_id" },
-        { status: 400 },
-      );
-    }
-
-    const deviceId = body.device_id;
-    const deviceMetadata = body.device_metadata;
-
-    // Check if device exists
-    const { data: existingDevice, error: checkError } = await supabase
-      .from("devices")
-      .select("device_id")
-      .eq("device_id", deviceId)
-      .single();
-
-    if (checkError && checkError.code !== "PGRST116") {
-      throw checkError;
-    }
-
-    if (!existingDevice) {
-      return NextResponse.json(
-        { error: "Device not registered" },
-        { status: 404 },
-      );
+    // Parse optional body for metadata
+    let deviceMetadata: HeartbeatRequest["device_metadata"] = undefined;
+    try {
+      const body: HeartbeatRequest = await request.json();
+      deviceMetadata = body.device_metadata;
+    } catch {
+      // Body is optional for heartbeat
     }
 
     // Build update object
@@ -72,6 +54,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.statusCode }
+      );
+    }
+
     console.error("Heartbeat failed:", error);
     return NextResponse.json({ error: "Heartbeat failed" }, { status: 500 });
   }

@@ -8,7 +8,32 @@ All API routes are prefixed with `/api` and are Next.js API routes.
 
 ## Authentication
 
-Currently, API routes use Supabase with Row Level Security (RLS) disabled. The anon key is sufficient for all operations.
+### JWT Authentication (for POST endpoints)
+
+POST endpoints that ingest data from the extension/agent require JWT authentication:
+
+1. **Token Format**: `Authorization: Bearer <JWT token>`
+2. **Algorithm**: RS256 (RSA signature)
+3. **JWT Claims**:
+   - `sub`: device_id (required)
+   - `jti`: unique token ID for replay prevention (optional)
+   - `exp`: expiration timestamp (optional)
+
+The extension/agent signs JWT tokens with the device's private key. The backend verifies using the device's public key stored in the database during registration.
+
+**Endpoints requiring authentication**:
+
+- `POST /api/devices/heartbeat`
+- `POST /api/prompt`
+- `POST /api/browsers/register`
+- `POST /api/browsers/heartbeat`
+- `POST /api/extension/status`
+- `POST /api/compliance/event`
+
+**Endpoints NOT requiring authentication**:
+
+- `POST /api/devices/register` (initial device registration)
+- All GET endpoints (read-only)
 
 ## Endpoints
 
@@ -287,11 +312,12 @@ curl -X POST http://localhost:3000/api/devices/register \
 
 Update device last_heartbeat timestamp and optionally update metadata.
 
-**Request Body:**
+**Authentication**: Required (JWT Bearer token)
+
+**Request Body** (optional):
 
 ```typescript
 {
-  device_id: string;        // Required - Device ID
   device_metadata?: {       // Optional - Metadata to update
     hostname?: string;
     ips?: string[];
@@ -316,7 +342,8 @@ Update device last_heartbeat timestamp and optionally update metadata.
 ```bash
 curl -X POST http://localhost:3000/api/devices/heartbeat \
   -H "Content-Type: application/json" \
-  -d '{"device_id": "dev-123"}'
+  -H "Authorization: Bearer <JWT_TOKEN>" \
+  -d '{"device_metadata": {"hostname": "my-laptop"}}'
 ```
 
 ---
@@ -327,9 +354,7 @@ curl -X POST http://localhost:3000/api/devices/heartbeat \
 
 Capture a single prompt from the extension.
 
-**Headers:**
-
-- `X-Device-ID` (optional) - Device ID if known
+**Authentication**: Required (JWT Bearer token)
 
 **Request Body:**
 
@@ -369,7 +394,7 @@ Capture a single prompt from the extension.
 ```bash
 curl -X POST http://localhost:3000/api/prompt \
   -H "Content-Type: application/json" \
-  -H "X-Device-ID: dev-123" \
+  -H "Authorization: Bearer <JWT_TOKEN>" \
   -d '{"id": "uuid-v4-here", "site": "chatgpt.com", "url": "https://chatgpt.com", "prompt": "Hello world", "timestamp": 1704067200000}'
 ```
 
@@ -381,9 +406,7 @@ curl -X POST http://localhost:3000/api/prompt \
 
 Register a browser instance discovered by the extension.
 
-**Headers:**
-
-- `X-Device-ID` (required) - Device ID
+**Authentication**: Required (JWT Bearer token)
 
 **Request Body:**
 
@@ -414,7 +437,7 @@ Register a browser instance discovered by the extension.
 ```bash
 curl -X POST http://localhost:3000/api/browsers/register \
   -H "Content-Type: application/json" \
-  -H "X-Device-ID: dev-123" \
+  -H "Authorization: Bearer <JWT_TOKEN>" \
   -d '{"instance_id": "browser-inst-1", "browser_name": "Chrome", "profile_name": "Default"}'
 ```
 
@@ -425,6 +448,8 @@ curl -X POST http://localhost:3000/api/browsers/register \
 **POST** `/api/browsers/heartbeat`
 
 Update browser instance last_seen timestamp.
+
+**Authentication**: Required (JWT Bearer token)
 
 **Request Body:**
 
@@ -449,6 +474,7 @@ Update browser instance last_seen timestamp.
 ```bash
 curl -X POST http://localhost:3000/api/browsers/heartbeat \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <JWT_TOKEN>" \
   -d '{"instance_id": "browser-inst-1"}'
 ```
 
@@ -459,6 +485,8 @@ curl -X POST http://localhost:3000/api/browsers/heartbeat \
 **POST** `/api/extension/status`
 
 Report extension health status (enabled/disabled).
+
+**Authentication**: Required (JWT Bearer token)
 
 **Request Body:**
 
@@ -486,6 +514,7 @@ Report extension health status (enabled/disabled).
 ```bash
 curl -X POST http://localhost:3000/api/extension/status \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <JWT_TOKEN>" \
   -d '{"instance_id": "browser-inst-1", "status": "enabled"}'
 ```
 
@@ -497,9 +526,7 @@ curl -X POST http://localhost:3000/api/extension/status \
 
 Report a compliance violation or tampering attempt.
 
-**Headers:**
-
-- `X-Device-ID` (required) - Device ID
+**Authentication**: Required (JWT Bearer token)
 
 **Request Body:**
 
@@ -532,7 +559,7 @@ Report a compliance violation or tampering attempt.
 ```bash
 curl -X POST http://localhost:3000/api/compliance/event \
   -H "Content-Type: application/json" \
-  -H "X-Device-ID: dev-123" \
+  -H "Authorization: Bearer <JWT_TOKEN>" \
   -d '{"event_type": "extension_disabled", "severity": "warning", "detected_at": "2024-01-01T00:00:00Z"}'
 ```
 
@@ -544,6 +571,7 @@ All endpoints return standard HTTP status codes:
 
 - `200` - Success
 - `400` - Bad request (missing required fields, invalid data)
+- `401` - Authentication required or failed (missing/invalid/expired JWT token)
 - `404` - Resource not found
 - `409` - Conflict (e.g., duplicate prompt ID)
 - `500` - Server error

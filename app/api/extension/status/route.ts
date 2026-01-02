@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import type { ExtensionStatusRequest, ExtensionStatusResponse } from "@/types";
+import { requireAuth, AuthError } from "@/lib/auth";
 import { v4 as uuidv4 } from "uuid";
 
 export async function POST(request: NextRequest) {
   try {
+    // Authenticate using JWT token
+    await requireAuth(request);
+
     const body: ExtensionStatusRequest = await request.json();
 
     // Validate required fields
@@ -56,6 +60,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.statusCode },
+      );
+    }
+
     console.error("Extension status report failed:", error);
     return NextResponse.json(
       { error: "Extension status report failed" },
