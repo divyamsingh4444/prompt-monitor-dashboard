@@ -102,7 +102,6 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
    ```
 
 2. **Make Changes**
-
    - Write code following project conventions
    - Update types if needed (see [Working with Types](#working-with-types))
 
@@ -455,7 +454,7 @@ export async function GET(request: NextRequest) {
     console.error("Error:", error);
     return NextResponse.json(
       { error: "Failed to fetch data" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -472,7 +471,7 @@ try {
   console.error("Error:", error);
   return NextResponse.json(
     { error: "User-friendly error message" },
-    { status: 500 }
+    { status: 500 },
   );
 }
 ```
@@ -490,7 +489,7 @@ const status = searchParams.get("status");
 ```typescript
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
   // Use id

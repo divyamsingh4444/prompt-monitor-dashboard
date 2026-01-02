@@ -6,7 +6,7 @@ import { decodeDeviceEventMetadata, decodeSeverity } from "@/types";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -35,8 +35,8 @@ export async function GET(
         severityValue === "critical"
           ? DeviceEvent.severity.CRITICAL
           : severityValue === "warning"
-          ? DeviceEvent.severity.WARNING
-          : DeviceEvent.severity.INFO;
+            ? DeviceEvent.severity.WARNING
+            : DeviceEvent.severity.INFO;
 
       return {
         id: e.id,
@@ -60,7 +60,7 @@ export async function GET(
     const stats = {
       total: events.length,
       critical: events.filter(
-        (e) => e.severity === DeviceEvent.severity.CRITICAL
+        (e) => e.severity === DeviceEvent.severity.CRITICAL,
       ).length,
       warning: events.filter((e) => e.severity === DeviceEvent.severity.WARNING)
         .length,
@@ -73,7 +73,7 @@ export async function GET(
     console.error("Error fetching device events:", error);
     return NextResponse.json(
       { error: "Failed to fetch device events" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

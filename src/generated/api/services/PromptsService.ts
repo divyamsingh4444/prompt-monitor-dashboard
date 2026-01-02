@@ -3,6 +3,8 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { BlockedPrompt } from "../models/BlockedPrompt";
+import type { CapturePromptRequest } from "../models/CapturePromptRequest";
+import type { CapturePromptResponse } from "../models/CapturePromptResponse";
 import type { Prompt } from "../models/Prompt";
 import type { CancelablePromise } from "../core/CancelablePromise";
 import { OpenAPI } from "../core/OpenAPI";
@@ -64,6 +66,28 @@ export class PromptsService {
       },
       errors: {
         404: `Prompt not found`,
+        500: `Server error`,
+      },
+    });
+  }
+  /**
+   * Capture a prompt
+   * Capture a single prompt from the extension. Requires authentication.
+   * @param requestBody
+   * @returns CapturePromptResponse Prompt captured successfully
+   * @throws ApiError
+   */
+  public static capturePrompt(
+    requestBody: CapturePromptRequest,
+  ): CancelablePromise<CapturePromptResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/prompt",
+      body: requestBody,
+      mediaType: "application/json",
+      errors: {
+        400: `Invalid request`,
+        401: `Authentication required`,
         500: `Server error`,
       },
     });

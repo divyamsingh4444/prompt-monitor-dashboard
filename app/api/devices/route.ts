@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
         (d) =>
           d.hostname.toLowerCase().includes(searchLower) ||
           d.id.toLowerCase().includes(searchLower) ||
-          d.ip_address.includes(search)
+          d.ip_address.includes(search),
       );
     }
 
@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching devices:", error);
     return NextResponse.json(
       { error: "Failed to fetch devices" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

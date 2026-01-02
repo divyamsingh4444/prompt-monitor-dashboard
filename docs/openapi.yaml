@@ -18,6 +18,12 @@ tags:
     description: Device management endpoints
   - name: Prompts
     description: Prompt monitoring endpoints
+  - name: Browsers
+    description: Browser instance management endpoints
+  - name: Extension
+    description: Extension status endpoints
+  - name: Compliance
+    description: Compliance event endpoints
 
 paths:
   /api/stats:
@@ -224,6 +230,261 @@ paths:
                 $ref: "#/components/schemas/Prompt"
         "404":
           description: Prompt not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/devices/register:
+    post:
+      tags:
+        - Devices
+      summary: Register a new device
+      description: Register a new device with its public key and metadata. This is called by the native agent on first run.
+      operationId: registerDevice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterDeviceRequest"
+      responses:
+        "200":
+          description: Device registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegisterDeviceResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/devices/heartbeat:
+    post:
+      tags:
+        - Devices
+      summary: Send device heartbeat
+      description: Update device last_heartbeat timestamp and optionally update metadata. Requires authentication.
+      operationId: deviceHeartbeat
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HeartbeatRequest"
+      responses:
+        "200":
+          description: Heartbeat recorded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HeartbeatResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/prompt:
+    post:
+      tags:
+        - Prompts
+      summary: Capture a prompt
+      description: Capture a single prompt from the extension. Requires authentication.
+      operationId: capturePrompt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CapturePromptRequest"
+      responses:
+        "200":
+          description: Prompt captured successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CapturePromptResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/browsers/register:
+    post:
+      tags:
+        - Browsers
+      summary: Register a browser instance
+      description: Register a browser instance discovered by the extension. Requires authentication.
+      operationId: registerBrowser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterBrowserRequest"
+      responses:
+        "200":
+          description: Browser registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegisterBrowserResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/browsers/heartbeat:
+    post:
+      tags:
+        - Browsers
+      summary: Send browser heartbeat
+      description: Update browser instance last_seen timestamp. Requires authentication.
+      operationId: browserHeartbeat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BrowserHeartbeatRequest"
+      responses:
+        "200":
+          description: Heartbeat recorded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrowserHeartbeatResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/extension/status:
+    post:
+      tags:
+        - Extension
+      summary: Report extension status
+      description: Report extension health status (enabled/disabled). Requires authentication.
+      operationId: reportExtensionStatus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExtensionStatusRequest"
+      responses:
+        "200":
+          description: Status reported successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExtensionStatusResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/compliance/event:
+    post:
+      tags:
+        - Compliance
+      summary: Report compliance event
+      description: Report a compliance violation or tampering attempt. Requires authentication.
+      operationId: reportComplianceEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ComplianceEventRequest"
+      responses:
+        "200":
+          description: Event reported successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ComplianceEventResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
           content:
             application/json:
               schema:
@@ -507,3 +768,359 @@ components:
         - severity
         - matched_pattern
         - timestamp
+
+    # Request/Response schemas for POST endpoints
+
+    RegisterDeviceRequest:
+      type: object
+      description: Request body for device registration
+      properties:
+        device_id:
+          type: string
+          description: Unique device identifier
+        public_key_pem:
+          type: string
+          description: Device public key in PEM format for JWT verification
+        hostname:
+          type: string
+          description: Device hostname
+        macs:
+          type: array
+          items:
+            type: string
+          description: List of MAC addresses
+        ips:
+          type: array
+          items:
+            type: string
+          description: List of IP addresses
+        os:
+          type: string
+          description: Operating system
+        browsers:
+          type: array
+          items:
+            type: string
+          description: List of detected browsers
+      required:
+        - device_id
+        - public_key_pem
+        - hostname
+
+    RegisterDeviceResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Registration status
+        device_id:
+          type: string
+          description: Registered device ID
+        message:
+          type: string
+          description: Success message
+      required:
+        - status
+        - device_id
+        - message
+
+    HeartbeatRequest:
+      type: object
+      description: Request body for device heartbeat (optional metadata)
+      properties:
+        device_id:
+          type: string
+          description: Device ID (required until auth is implemented)
+        device_metadata:
+          type: object
+          properties:
+            hostname:
+              type: string
+            ips:
+              type: array
+              items:
+                type: string
+            macs:
+              type: array
+              items:
+                type: string
+            os:
+              type: string
+      required:
+        - device_id
+
+    HeartbeatResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Heartbeat status
+        device_id:
+          type: string
+          description: Device ID
+        message:
+          type: string
+          description: Success message
+      required:
+        - status
+        - device_id
+        - message
+
+    CapturePromptRequest:
+      type: object
+      description: Request body for capturing a prompt
+      properties:
+        id:
+          type: string
+          description: UUID v4 message ID
+        site:
+          type: string
+          description: Site where prompt was captured
+        url:
+          type: string
+          description: URL where prompt was captured
+        prompt:
+          type: string
+          description: The prompt text
+        timestamp:
+          type: integer
+          format: int64
+          description: Timestamp in epoch milliseconds
+        selector:
+          type: string
+          nullable: true
+          description: DOM selector for the prompt input
+        conversation_id:
+          type: string
+          nullable: true
+          description: Conversation ID if applicable
+        trigger:
+          type: string
+          nullable: true
+          description: What triggered the prompt capture
+        page_title:
+          type: string
+          nullable: true
+          description: Page title
+        browser_name:
+          type: string
+          nullable: true
+          description: Browser name
+        browser_version:
+          type: string
+          nullable: true
+          description: Browser version
+        profile_name:
+          type: string
+          nullable: true
+          description: Browser profile name
+        username:
+          type: string
+          nullable: true
+          description: Username
+        agent_status:
+          type: string
+          nullable: true
+          description: Status of native agent
+        instance_id:
+          type: string
+          nullable: true
+          description: Browser instance ID
+        extension_version:
+          type: string
+          nullable: true
+          description: Extension version
+      required:
+        - id
+        - site
+        - url
+        - prompt
+        - timestamp
+
+    CapturePromptResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Capture status
+        prompt_id:
+          type: string
+          description: Captured prompt ID
+        message:
+          type: string
+          description: Success message
+      required:
+        - status
+        - prompt_id
+        - message
+
+    RegisterBrowserRequest:
+      type: object
+      description: Request body for browser instance registration
+      properties:
+        instance_id:
+          type: string
+          description: Unique browser instance ID
+        browser_name:
+          type: string
+          description: Browser name (e.g., Chrome, Firefox)
+        browser_version:
+          type: string
+          nullable: true
+          description: Browser version
+        profile_name:
+          type: string
+          description: Browser profile name
+        profile_path:
+          type: string
+          nullable: true
+          description: Path to browser profile
+        extension_id:
+          type: string
+          nullable: true
+          description: Extension ID
+        extension_version:
+          type: string
+          nullable: true
+          description: Extension version
+      required:
+        - instance_id
+        - browser_name
+        - profile_name
+
+    RegisterBrowserResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Registration status
+        instance_id:
+          type: string
+          description: Registered browser instance ID
+        message:
+          type: string
+          description: Success message
+      required:
+        - status
+        - instance_id
+        - message
+
+    BrowserHeartbeatRequest:
+      type: object
+      description: Request body for browser heartbeat
+      properties:
+        instance_id:
+          type: string
+          description: Browser instance ID
+      required:
+        - instance_id
+
+    BrowserHeartbeatResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Heartbeat status
+        instance_id:
+          type: string
+          description: Browser instance ID
+        message:
+          type: string
+          description: Success message
+      required:
+        - status
+        - instance_id
+        - message
+
+    ExtensionStatusRequest:
+      type: object
+      description: Request body for extension status report
+      properties:
+        instance_id:
+          type: string
+          description: Browser instance ID
+        status:
+          type: string
+          description: Extension status (e.g., enabled, disabled)
+        reported_by:
+          type: string
+          nullable: true
+          description: Who/what reported the status
+        metadata:
+          type: object
+          nullable: true
+          description: Additional metadata
+      required:
+        - instance_id
+        - status
+
+    ExtensionStatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Report status
+        status_id:
+          type: string
+          description: Created status record ID
+        message:
+          type: string
+          description: Success message
+      required:
+        - status
+        - status_id
+        - message
+
+    ComplianceEventRequest:
+      type: object
+      description: Request body for compliance event report
+      properties:
+        instance_id:
+          type: string
+          nullable: true
+          description: Browser instance ID
+        event_type:
+          type: string
+          description: Type of compliance event
+        severity:
+          type: string
+          enum: [info, warning, critical]
+          description: Event severity
+        detected_at:
+          type: string
+          format: date-time
+          description: When the event was detected (ISO 8601)
+        user_context:
+          type: string
+          nullable: true
+          description: User context information
+        details:
+          type: object
+          nullable: true
+          description: Additional event details (JSONB)
+          properties:
+            site:
+              type: string
+            reason:
+              type: string
+      required:
+        - event_type
+        - severity
+        - detected_at
+
+    ComplianceEventResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Report status
+        event_id:
+          type: string
+          description: Created event ID
+        message:
+          type: string
+          description: Success message
+      required:
+        - status
+        - event_id
+        - message

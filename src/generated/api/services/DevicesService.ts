@@ -6,7 +6,11 @@ import type { BlockedPrompt } from "../models/BlockedPrompt";
 import type { Device } from "../models/Device";
 import type { DeviceEventsResponse } from "../models/DeviceEventsResponse";
 import type { DeviceStatus } from "../models/DeviceStatus";
+import type { HeartbeatRequest } from "../models/HeartbeatRequest";
+import type { HeartbeatResponse } from "../models/HeartbeatResponse";
 import type { Prompt } from "../models/Prompt";
+import type { RegisterDeviceRequest } from "../models/RegisterDeviceRequest";
+import type { RegisterDeviceResponse } from "../models/RegisterDeviceResponse";
 import type { CancelablePromise } from "../core/CancelablePromise";
 import { OpenAPI } from "../core/OpenAPI";
 import { request as __request } from "../core/request";
@@ -112,6 +116,48 @@ export class DevicesService {
         id: id,
       },
       errors: {
+        500: `Server error`,
+      },
+    });
+  }
+  /**
+   * Register a new device
+   * Register a new device with its public key and metadata. This is called by the native agent on first run.
+   * @param requestBody
+   * @returns RegisterDeviceResponse Device registered successfully
+   * @throws ApiError
+   */
+  public static registerDevice(
+    requestBody: RegisterDeviceRequest,
+  ): CancelablePromise<RegisterDeviceResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/devices/register",
+      body: requestBody,
+      mediaType: "application/json",
+      errors: {
+        400: `Invalid request`,
+        500: `Server error`,
+      },
+    });
+  }
+  /**
+   * Send device heartbeat
+   * Update device last_heartbeat timestamp and optionally update metadata. Requires authentication.
+   * @param requestBody
+   * @returns HeartbeatResponse Heartbeat recorded successfully
+   * @throws ApiError
+   */
+  public static deviceHeartbeat(
+    requestBody?: HeartbeatRequest,
+  ): CancelablePromise<HeartbeatResponse> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/devices/heartbeat",
+      body: requestBody,
+      mediaType: "application/json",
+      errors: {
+        401: `Authentication required`,
         500: `Server error`,
       },
     });
