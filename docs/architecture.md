@@ -70,21 +70,23 @@ The Prompt Monitor Dashboard is a Next.js application that monitors AI prompts a
 
 **Type Generation:**
 
-- `type-crafter` for custom types from YAML specs
+- `openapi-typescript-codegen` for API types from OpenAPI spec
+- `type-crafter` for database decoder types from YAML specs
 - Supabase CLI for database schema types
-- All types exported through `types/index.ts`
+- All types exported through `types/index.ts` using `export *`
 
 **Type Organization:**
 
-- `types/index.ts` - Central export file (re-exports everything)
+- `types/index.ts` - Central export file (uses `export *` from all sources)
 - `types/database.ts` - Database type aliases (`DatabaseDevice`, `DatabasePrompt`, etc.)
-- `src/generated/types/` - Generated custom types and decoders
-- `src/generated/supabase/` - Generated Supabase database types
+- `src/generated/api/` - OpenAPI generated types and services
+- `src/generated/types/` - Database decoder types
+- `src/generated/supabase/` - Supabase database types
 
 **Type Categories:**
 
+- API types (from OpenAPI spec - Device, StatsResponse, DeviceStatus, etc.)
 - Database types (from Supabase schema)
-- API types (from YAML specs)
 - Runtime decoders (for JSONB validation)
 - Type aliases (semantic names for database tables)
 
@@ -111,13 +113,14 @@ Frontend Component
 ### Type Safety Flow
 
 ```
-Database Schema (Supabase)
-  ↓ (generate)
-SupabaseTypes.ts
-  ↓ (export)
+OpenAPI Spec (docs/openapi.yaml)
+  ↓ (generate:api)
+src/generated/api/ (types + services)
+  ↓ (export *)
 types/index.ts
   ↓ (import)
-API Routes & Components
+Components import types from @/types
+Components import apiClient from @/lib/api-client
 ```
 
 ## Key Design Decisions
@@ -175,15 +178,23 @@ app/
 
 components/           # Reusable UI components
 lib/
+├── api-client.ts     # Type-safe API client (uses generated services)
 ├── supabase.ts       # Supabase client
 ├── hooks/            # Custom React hooks
 └── utils/            # Utility functions
 
 types/                # Central type exports
-├── index.ts          # Re-exports all types
+├── index.ts          # Re-exports all types (via export *)
 └── database.ts       # Database type aliases
-src/generated/        # Generated type files
+
+src/generated/        # Generated files (DO NOT EDIT)
+├── api/              # OpenAPI generated (types + services)
+├── types/            # type-crafter generated (decoders)
+└── supabase/         # Supabase generated
+
 docs/                 # Documentation
+├── openapi.yaml      # API specification (source of truth)
+└── specs/            # Type specifications
 scripts/              # Build scripts
 ```
 
@@ -212,11 +223,13 @@ scripts/              # Build scripts
 
 ## Development Workflow
 
-1. **Schema Changes**: Update Supabase schema
-2. **Type Generation**: Run `pnpm run generate:types`
-3. **API Updates**: Update API routes with new types
-4. **Frontend Updates**: Update components with new types
-5. **Testing**: Test locally with `pnpm dev`
+1. **API Changes**: Update `docs/openapi.yaml`
+2. **Schema Changes**: Update Supabase schema (if needed)
+3. **Type Generation**: Run `pnpm run generate:all`
+4. **API Client**: Add method to `lib/api-client.ts` (if new endpoint)
+5. **API Routes**: Implement route in `app/api/`
+6. **Frontend Updates**: Update components with new types
+7. **Testing**: Test locally with `pnpm dev`
 
 ## Deployment
 

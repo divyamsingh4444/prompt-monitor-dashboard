@@ -4,10 +4,11 @@ This project uses a comprehensive type generation system to ensure type safety a
 
 ## Overview
 
-All TypeScript types are generated from two sources:
+All TypeScript types are generated from three sources:
 
-1. **Supabase Database Schema** - Automatically generated from your Supabase project
-2. **YAML Specifications** - Custom types defined in `docs/specs/types.spec.yaml`
+1. **OpenAPI Specification** - API types generated from `docs/openapi.yaml`
+2. **Supabase Database Schema** - Automatically generated from your Supabase project
+3. **YAML Specifications** - Database decoder types defined in `docs/specs/types.spec.yaml`
 
 ## Type Sources
 
@@ -15,7 +16,8 @@ All TypeScript types are generated from two sources:
 
 ```
 src/generated/
-├── types/          # type-crafter generated (DatabaseTypes, ApiTypes)
+├── api/            # OpenAPI generated (API types + services)
+├── types/          # type-crafter generated (DatabaseTypes, decoders)
 └── supabase/       # Supabase CLI generated (SupabaseTypes)
 ```
 
@@ -24,44 +26,61 @@ src/generated/
 All types are exported through `types/index.ts` and can be imported using:
 
 ```typescript
-import type { Device, Tables, Database, Json } from "@/types";
-import { decodeStringArray, decodeSeverity } from "@/types";
+// Types from @/types
+import type {
+  Device,
+  StatsResponse,
+  DeviceStatus,
+  DatabaseDevice,
+} from "@/types";
+import {
+  decodeStringArray,
+  decodeSeverity,
+  DeviceStatus,
+  DeviceEvent,
+} from "@/types";
+
+// API client from @/lib/api-client
+import { apiClient, ApiError } from "@/lib/api-client";
 ```
 
 **Type Organization:**
 
 ```
 types/
-├── index.ts        # Central exports (re-exports all types)
+├── index.ts        # Central exports (re-exports all types via export *)
 └── database.ts     # Database type aliases (DatabaseDevice, etc.)
 ```
 
-The `types/index.ts` file re-exports:
+The `types/index.ts` file uses `export *` to re-export from:
 
-- All generated types from `src/generated/types`
-- All Supabase types from `src/generated/supabase/SupabaseTypes`
-- Database type aliases from `types/database.ts`
+- `src/generated/api` - OpenAPI generated types (Device, StatsResponse, DeviceStatus, etc.)
+- `src/generated/types/DatabaseTypes` - Database decoder types
+- `src/generated/supabase/SupabaseTypes` - Supabase types
+- `types/database.ts` - Database type aliases
 
 ## Type Generation
 
-### Generating Types
+### Generating All Types
 
 Run the following command to generate all types:
 
 ```bash
-pnpm run generate:types
+pnpm run generate:all
 ```
 
 This command:
 
-1. Generates types from YAML specs using type-crafter
-2. Generates Supabase types from your database schema
-3. Formats all generated files
-4. Removes unused imports
+1. Generates API types from OpenAPI spec using openapi-typescript-codegen
+2. Generates database decoder types from YAML specs using type-crafter
+3. Generates Supabase types from your database schema
+4. Formats all generated files
+5. Removes unused imports
 
 ### Individual Generation
 
-- **Custom Types**: `pnpm run generate:types` (includes type-crafter)
+- **API Types**: `pnpm run generate:api` (from OpenAPI spec)
+- **Database Types**: `pnpm run generate:types` (includes type-crafter + Supabase)
 - **Supabase Types**: `pnpm run generate:supabase:types`
 
 ## Type Categories
@@ -91,16 +110,20 @@ Generated from your Supabase database schema:
 
 **Recommended**: Use type aliases from `@/types` (`DatabaseDevice`, `DatabasePrompt`, etc.) instead of `Tables<"table_name">` for better code readability. These aliases are defined in `types/database.ts` and re-exported through `types/index.ts`.
 
-### API Types (`ApiTypes.ts`)
+### API Types (OpenAPI Generated)
 
-Generated from `docs/specs/types.spec.yaml` for frontend API responses:
+Generated from `docs/openapi.yaml` using openapi-typescript-codegen:
 
 - `Device` - Device information with computed fields
+- `DeviceStatus` - Enum: active, inactive, warning, error, compliance
 - `Prompt` - Prompt data structure
-- `DeviceEvent` - Device event information
-- `Alert` - Alert information (filtered from events)
+- `DeviceEvent` - Device event information (with severity enum)
+- `Alert` - Alert information (with severity enum)
 - `BlockedPrompt` - Blocked prompt information
-- `DashboardStats` - Dashboard statistics
+- `StatsResponse` - Dashboard statistics
+- `DeviceEventsResponse` - Events with stats
+
+Also generates service classes (`DevicesService`, `PromptsService`, etc.) used by `lib/api-client.ts`.
 
 ## Runtime Validation
 
@@ -150,12 +173,14 @@ const device: DatabaseDevice = await supabase
 ### API Types
 
 ```typescript
-import type { Device, DashboardStats } from "@/types";
+import type { Device, StatsResponse } from "@/types";
+import { DeviceStatus } from "@/types";
 
 // Use in API routes
 const device: Device = {
   id: deviceData.device_id,
   hostname: deviceData.hostname || "Unknown",
+  status: DeviceStatus.ACTIVE,
   // ... other fields
 };
 ```
@@ -175,11 +200,18 @@ const ipAddress = ips && ips.length > 0 ? ips[0] : "N/A";
 
 ## Adding New Types
 
-### Custom Types
+### API Types (for new endpoints)
+
+1. Add endpoint and schema to `docs/openapi.yaml`
+2. Run `pnpm run generate:all`
+3. Types and services will be available in `@/types`
+4. Add method to `lib/api-client.ts` using the generated service
+
+### Database Decoder Types
 
 1. Add type definition to `docs/specs/types.spec.yaml`
 2. Run `pnpm run generate:types`
-3. Types will be available in `@/types`
+3. Decoders will be available in `@/types`
 
 ### Database Types
 

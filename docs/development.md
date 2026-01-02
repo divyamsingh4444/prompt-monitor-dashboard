@@ -102,6 +102,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
    ```
 
 2. **Make Changes**
+
    - Write code following project conventions
    - Update types if needed (see [Working with Types](#working-with-types))
 
@@ -150,10 +151,10 @@ prompt-monitor-dashboard/
 │   └── device-card.tsx          # Device card component
 │
 ├── lib/                          # Utilities and helpers
+│   ├── api-client.ts             # Type-safe API client (uses generated services)
 │   ├── hooks/                    # Custom React hooks
 │   ├── supabase.ts               # Supabase client
 │   └── utils/                    # Utility functions
-│       ├── api.ts                # API helper
 │       └── decoders.ts           # JSONB decoders
 │
 ├── types/                        # Type definitions
@@ -161,7 +162,8 @@ prompt-monitor-dashboard/
 │   └── database.ts               # Database type aliases
 │
 ├── src/generated/                # Generated files (DO NOT EDIT)
-│   ├── types/                    # type-crafter generated
+│   ├── api/                      # OpenAPI generated (types + services)
+│   ├── types/                    # type-crafter generated (database decoders)
 │   └── supabase/                 # Supabase generated
 │
 ├── docs/                         # Documentation
@@ -182,13 +184,56 @@ prompt-monitor-dashboard/
 
 ### Adding a New API Endpoint
 
-1. Create a new route file in `app/api/`:
+1. **Define in OpenAPI spec** (`docs/openapi.yaml`):
+
+   ```yaml
+   paths:
+     /api/example:
+       get:
+         summary: Example endpoint
+         operationId: getExample
+         responses:
+           "200":
+             content:
+               application/json:
+                 schema:
+                   $ref: "#/components/schemas/ExampleResponse"
+
+   components:
+     schemas:
+       ExampleResponse:
+         type: object
+         properties:
+           data:
+             type: string
+   ```
+
+2. **Regenerate types**:
+
+   ```bash
+   pnpm run generate:all
+   ```
+
+3. **Add to API client** (`lib/api-client.ts`):
 
    ```typescript
-   // app/api/example/route.ts
+   import { ExampleService } from "@/src/generated/api";
+   import type { ExampleResponse } from "@/src/generated/api";
+
+   export const apiClient = {
+     // ... existing methods
+     getExample: async (): Promise<ExampleResponse> => {
+       return unwrapPromise(ExampleService.getExample());
+     },
+   };
+   ```
+
+4. **Implement the route** (`app/api/example/route.ts`):
+
+   ```typescript
    import { NextRequest, NextResponse } from "next/server";
    import { supabase } from "@/lib/supabase";
-   import type { YourType } from "@/types";
+   import type { ExampleResponse } from "@/types";
 
    export async function GET(request: NextRequest) {
      try {
@@ -200,7 +245,7 @@ prompt-monitor-dashboard/
    }
    ```
 
-2. Test the endpoint:
+5. **Test the endpoint**:
    ```bash
    curl http://localhost:3000/api/example
    ```
@@ -217,7 +262,7 @@ prompt-monitor-dashboard/
      // Props definition
    }
 
-   export function ExampleComponent({ }: ExampleComponentProps) {
+   export function ExampleComponent({}: ExampleComponentProps) {
      return <div>Example</div>;
    }
    ```
@@ -318,16 +363,21 @@ prompt-monitor-dashboard/
 
 ### Importing Types
 
-**Always import from `@/types` or `@/lib/api-client`:**
+**Always import types from `@/types` and API client from `@/lib/api-client`:**
 
 ```typescript
-// ✅ Correct - API types from OpenAPI
-import { apiClient, type Device, type DashboardStats } from "@/lib/api-client";
-import type { Device, DatabaseDevice, Tables } from "@/types";
+// ✅ Correct - Types from @/types, client from @/lib/api-client
+import { apiClient, ApiError } from "@/lib/api-client";
+import type {
+  Device,
+  StatsResponse,
+  DeviceStatus,
+  DatabaseDevice,
+} from "@/types";
 
-// ❌ Wrong - Don't import directly from generated files
+// ❌ Wrong - Don't import types from api-client or directly from generated files
+import type { Device } from "@/lib/api-client";
 import type { Device } from "@/src/generated/api/models/Device";
-import type { Device } from "@/src/generated/types/ApiTypes"; // Deprecated
 ```
 
 ### Using Database Types
@@ -405,7 +455,7 @@ export async function GET(request: NextRequest) {
     console.error("Error:", error);
     return NextResponse.json(
       { error: "Failed to fetch data" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
@@ -422,7 +472,7 @@ try {
   console.error("Error:", error);
   return NextResponse.json(
     { error: "User-friendly error message" },
-    { status: 500 },
+    { status: 500 }
   );
 }
 ```
@@ -440,7 +490,7 @@ const status = searchParams.get("status");
 ```typescript
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
   // Use id
@@ -488,15 +538,19 @@ export function Component() {
 ### Fetching Data
 
 ```typescript
-import { api } from "@/lib/utils/api";
+import { apiClient, ApiError } from "@/lib/api-client";
 import type { Device } from "@/types";
 
 const fetchDevices = async () => {
   try {
-    const devices = await api<Device[]>("/api/devices");
+    const devices = await apiClient.getDevices();
     setDevices(devices);
   } catch (error) {
-    console.error("Failed to fetch devices:", error);
+    if (error instanceof ApiError) {
+      console.error(`API Error ${error.status}:`, error.message);
+    } else {
+      console.error("Failed to fetch devices:", error);
+    }
   }
 };
 ```

@@ -93,18 +93,20 @@ prompt-monitor-dashboard/
 - `pnpm lint` - Run ESLint
 - `pnpm lint:fix` - Fix ESLint errors
 - `pnpm format` - Format all files with Prettier
-- `pnpm generate:types` - Generate all TypeScript types
+- `pnpm generate:all` - Generate all types (API + database + Supabase)
+- `pnpm generate:api` - Generate API types from OpenAPI spec
+- `pnpm generate:types` - Generate database decoder types
 - `pnpm generate:supabase:types` - Generate Supabase types only
 
 ## Type System
 
 This project uses a comprehensive type generation system:
 
+- **API Types**: Generated from `docs/openapi.yaml` using openapi-typescript-codegen
 - **Database Types**: Generated from Supabase schema
-- **API Types**: Generated from YAML specs using type-crafter
-- **Custom Decoders**: Runtime validation for JSONB fields
+- **Custom Decoders**: Runtime validation for JSONB fields (from type-crafter)
 
-All types are exported from `@/types` - see [docs/type-system.md](./docs/type-system.md) for details.
+All types are exported from `@/types`, API client from `@/lib/api-client` - see [docs/type-system.md](./docs/type-system.md) for details.
 
 ## API Routes
 
@@ -137,10 +139,11 @@ See [docs/database.md](./docs/database.md) for the complete schema.
 
 Types are automatically generated from:
 
-1. **Supabase Schema**: Database types from your Supabase project
-2. **YAML Specs**: Custom types defined in `docs/specs/types.spec.yaml`
+1. **OpenAPI Spec**: API types from `docs/openapi.yaml`
+2. **Supabase Schema**: Database types from your Supabase project
+3. **YAML Specs**: Database decoder types from `docs/specs/types.spec.yaml`
 
-Run `pnpm run generate:types` to regenerate all types after schema changes.
+Run `pnpm run generate:all` to regenerate all types after schema changes.
 
 ### Code Style
 
