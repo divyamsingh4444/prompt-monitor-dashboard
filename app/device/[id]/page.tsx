@@ -49,7 +49,7 @@ export default function DeviceDetailPage({
       const [deviceData, eventsResponse, promptsData] = await Promise.all([
         api<Device>(`/api/devices/${id}`),
         api<{ events: DeviceEvent[]; stats: object }>(
-          `/api/devices/${id}/events`,
+          `/api/devices/${id}/events`
         ),
         api<Prompt[]>(`/api/devices/${id}/prompts`),
       ]);
@@ -60,7 +60,7 @@ export default function DeviceDetailPage({
       const alertsData: Alert[] = eventsData
         .filter(
           (event) =>
-            event.severity === "warning" || event.severity === "critical",
+            event.severity === "warning" || event.severity === "critical"
         )
         .map((event) => {
           // Type guard for severity
@@ -168,7 +168,10 @@ export default function DeviceDetailPage({
 
       <Tabs defaultValue="timeline" className="space-y-6">
         <TabsList className="bg-transparent border-b-2 border-primary/20 w-full justify-start rounded-none h-auto p-0 gap-6 mb-2">
-          <TabsTrigger value="timeline" className="cyber-tab text-xs lg:text-sm">
+          <TabsTrigger
+            value="timeline"
+            className="cyber-tab text-xs lg:text-sm"
+          >
             TIMELINE
           </TabsTrigger>
           <TabsTrigger value="prompts" className="cyber-tab text-xs lg:text-sm">
@@ -184,7 +187,10 @@ export default function DeviceDetailPage({
 
         <TabsContent value="timeline" className="space-y-4">
           {events.map((event) => (
-            <div key={event.id} className="cyber-card p-5 group hover:border-primary/50 transition-all duration-300">
+            <div
+              key={event.id}
+              className="cyber-card p-5 group hover:border-primary/50 transition-all duration-300"
+            >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex gap-4 flex-1">
                   <div
@@ -192,8 +198,8 @@ export default function DeviceDetailPage({
                       event.severity === "critical"
                         ? "bg-destructive/10 border-destructive/50 group-hover:bg-destructive/20 group-hover:border-destructive/70"
                         : event.severity === "warning"
-                          ? "bg-yellow-500/10 border-yellow-500/50 group-hover:bg-yellow-500/20 group-hover:border-yellow-500/70"
-                          : "bg-primary/10 border-primary/50 group-hover:bg-primary/20 group-hover:border-primary/70"
+                        ? "bg-yellow-500/10 border-yellow-500/50 group-hover:bg-yellow-500/20 group-hover:border-yellow-500/70"
+                        : "bg-primary/10 border-primary/50 group-hover:bg-primary/20 group-hover:border-primary/70"
                     }`}
                   >
                     <Activity
@@ -201,8 +207,8 @@ export default function DeviceDetailPage({
                         event.severity === "critical"
                           ? "text-destructive drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]"
                           : event.severity === "warning"
-                            ? "text-yellow-500 drop-shadow-[0_0_8px_rgba(250,204,21,0.6)]"
-                            : "text-primary drop-shadow-[0_0_8px_rgba(0,255,255,0.6)]"
+                          ? "text-yellow-500 drop-shadow-[0_0_8px_rgba(250,204,21,0.6)]"
+                          : "text-primary drop-shadow-[0_0_8px_rgba(0,255,255,0.6)]"
                       }`}
                     />
                   </div>
@@ -244,7 +250,10 @@ export default function DeviceDetailPage({
 
         <TabsContent value="prompts" className="space-y-4">
           {prompts.map((prompt) => (
-            <div key={prompt.id} className="cyber-card p-5 group hover:border-primary/50 transition-all duration-300">
+            <div
+              key={prompt.id}
+              className="cyber-card p-5 group hover:border-primary/50 transition-all duration-300"
+            >
               <div className="flex justify-between items-start mb-4">
                 <div className="flex gap-3 items-center flex-wrap">
                   <div className="bg-primary/10 p-2 border border-primary/30 rounded-sm group-hover:bg-primary/20 group-hover:border-primary/50 transition-all duration-300 group-hover:scale-110">
@@ -282,7 +291,9 @@ export default function DeviceDetailPage({
               <div className="mt-4 flex gap-4 text-[10px] font-mono text-muted-foreground uppercase flex-wrap">
                 <span className="opacity-80">BROWSER: {prompt.browser}</span>
                 {prompt.is_flagged && (
-                  <span className="text-destructive font-bold neon-text">FLAGGED</span>
+                  <span className="text-destructive font-bold neon-text">
+                    FLAGGED
+                  </span>
                 )}
               </div>
             </div>

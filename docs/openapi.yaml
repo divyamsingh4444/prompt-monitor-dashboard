@@ -1,0 +1,475 @@
+openapi: 3.0.3
+info:
+  title: Prompt Monitor Dashboard API
+  description: API for monitoring AI prompts across multiple devices, providing real-time insights and compliance tracking.
+  version: 1.0.0
+  contact:
+    name: API Support
+servers:
+  - url: http://localhost:3000
+    description: Development server
+  - url: https://prompt-monitor-dashboard.vercel.app
+    description: Production server
+
+tags:
+  - name: Statistics
+    description: Dashboard statistics endpoints
+  - name: Devices
+    description: Device management endpoints
+  - name: Prompts
+    description: Prompt monitoring endpoints
+
+paths:
+  /api/stats:
+    get:
+      tags:
+        - Statistics
+      summary: Get dashboard statistics
+      description: Returns dashboard statistics including device counts and prompt metrics.
+      operationId: getStats
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatsResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/devices:
+    get:
+      tags:
+        - Devices
+      summary: List all devices
+      description: Returns a list of all devices with computed statistics. Supports filtering and searching.
+      operationId: listDevices
+      parameters:
+        - name: search
+          in: query
+          description: Search by hostname, ID, or IP address
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: Filter by device status
+          required: false
+          schema:
+            type: string
+            enum: [active, inactive, warning, error, compliance]
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Device"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/devices/{id}:
+    get:
+      tags:
+        - Devices
+      summary: Get device details
+      description: Returns detailed information about a specific device.
+      operationId: getDevice
+      parameters:
+        - name: id
+          in: path
+          description: Device ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Device"
+        "404":
+          description: Device not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/devices/{id}/prompts:
+    get:
+      tags:
+        - Devices
+        - Prompts
+      summary: Get device prompts
+      description: Returns all prompts captured from a specific device.
+      operationId: getDevicePrompts
+      parameters:
+        - name: id
+          in: path
+          description: Device ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Prompt"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/devices/{id}/events:
+    get:
+      tags:
+        - Devices
+      summary: Get device events
+      description: Returns all events associated with a device, including statistics.
+      operationId: getDeviceEvents
+      parameters:
+        - name: id
+          in: path
+          description: Device ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceEventsResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/devices/{id}/blocked:
+    get:
+      tags:
+        - Devices
+        - Prompts
+      summary: Get blocked prompts
+      description: Returns all blocked prompts (compliance events) for a device.
+      operationId: getBlockedPrompts
+      parameters:
+        - name: id
+          in: path
+          description: Device ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BlockedPrompt"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/prompt/{id}:
+    get:
+      tags:
+        - Prompts
+      summary: Get prompt details
+      description: Returns detailed information about a specific prompt.
+      operationId: getPrompt
+      parameters:
+        - name: id
+          in: path
+          description: Prompt ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Prompt"
+        "404":
+          description: Prompt not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    StatsResponse:
+      type: object
+      properties:
+        total_devices:
+          type: integer
+          description: Total number of devices
+        active_devices:
+          type: integer
+          description: Number of active devices (heartbeat within last 5 minutes)
+        inactive_devices:
+          type: integer
+          description: Number of inactive devices
+        prompts_today:
+          type: integer
+          description: Number of prompts captured today
+      required:
+        - total_devices
+        - active_devices
+        - inactive_devices
+        - prompts_today
+
+    Device:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Device identifier
+        hostname:
+          type: string
+          description: Device hostname
+        status:
+          type: string
+          enum: [active, inactive, warning, error, compliance]
+          description: Device status
+        os:
+          type: string
+          description: Operating system
+        ip_address:
+          type: string
+          description: Primary IP address
+        last_seen:
+          type: string
+          format: date-time
+          description: Last heartbeat timestamp (ISO 8601)
+        browser_count:
+          type: integer
+          description: Number of browsers detected
+        prompts_today:
+          type: integer
+          description: Number of prompts captured today
+        total_prompts:
+          type: integer
+          description: Total number of prompts captured
+        registered_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Device registration timestamp (ISO 8601)
+      required:
+        - id
+        - hostname
+        - status
+        - os
+        - ip_address
+        - last_seen
+        - browser_count
+        - prompts_today
+        - total_prompts
+
+    Prompt:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Prompt identifier
+        device_id:
+          type: string
+          nullable: true
+          description: Associated device ID
+        site:
+          type: string
+          description: Site where prompt was captured
+        prompt_text:
+          type: string
+          description: The prompt text
+        timestamp:
+          type: integer
+          format: int64
+          description: Timestamp in epoch milliseconds
+        browser:
+          type: string
+          description: Browser name
+        is_flagged:
+          type: boolean
+          description: Whether the prompt is flagged
+        url:
+          type: string
+          nullable: true
+          description: URL where prompt was captured
+        username:
+          type: string
+          nullable: true
+          description: Username associated with the prompt
+      required:
+        - id
+        - site
+        - prompt_text
+        - timestamp
+        - browser
+        - is_flagged
+
+    DeviceEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Event identifier
+        device_id:
+          type: string
+          nullable: true
+          description: Associated device ID
+        event_type:
+          type: string
+          description: Type of event
+        severity:
+          type: string
+          enum: [info, warning, critical]
+          description: Event severity level
+        description:
+          type: string
+          description: Event description
+        timestamp:
+          type: integer
+          format: int64
+          description: Timestamp in epoch milliseconds
+        site:
+          type: string
+          nullable: true
+          description: Site associated with event
+        browser_name:
+          type: string
+          nullable: true
+          description: Browser name
+        profile_name:
+          type: string
+          nullable: true
+          description: Browser profile name
+        username:
+          type: string
+          nullable: true
+          description: Username
+        url:
+          type: string
+          nullable: true
+          description: URL associated with event
+        prompt:
+          type: string
+          nullable: true
+          description: Prompt text if applicable
+        hostname:
+          type: string
+          nullable: true
+          description: Hostname
+      required:
+        - id
+        - event_type
+        - severity
+        - description
+        - timestamp
+
+    DeviceEventsResponse:
+      type: object
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/DeviceEvent"
+        stats:
+          type: object
+          properties:
+            total:
+              type: integer
+              description: Total number of events
+            critical:
+              type: integer
+              description: Number of critical events
+            warning:
+              type: integer
+              description: Number of warning events
+            info:
+              type: integer
+              description: Number of info events
+          required:
+            - total
+            - critical
+            - warning
+            - info
+      required:
+        - events
+        - stats
+
+    BlockedPrompt:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Blocked prompt identifier
+        device_id:
+          type: string
+          description: Associated device ID
+        site:
+          type: string
+          description: Site where prompt was blocked
+        reason:
+          type: string
+          description: Reason for blocking
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp when prompt was blocked (ISO 8601)
+      required:
+        - id
+        - device_id
+        - site
+        - reason
+        - timestamp
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+      required:
+        - error
