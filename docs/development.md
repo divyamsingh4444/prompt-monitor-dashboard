@@ -410,7 +410,7 @@ const device: Device = {
 Always use decoders for JSONB fields:
 
 ```typescript
-import { decodeStringArray } from "@/lib/utils/decoders";
+import { decodeStringArray } from "@/types";
 import type { DatabaseDevice } from "@/types";
 
 const device: DatabaseDevice = await getDevice();

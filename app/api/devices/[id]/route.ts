@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import type { Device, PromptCount, DatabaseDevice } from "@/types";
 import { DeviceStatus, decodeSupabaseError } from "@/types";
-import { decodeStringArray } from "@/lib/utils/decoders";
+import { decodeStringArray } from "@/types";
 
 export async function GET(
   request: NextRequest,

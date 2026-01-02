@@ -9,7 +9,7 @@
     "lint:fix": "eslint . --fix",
     "start": "next start",
     "generate:api": "npx openapi-typescript-codegen --input ./docs/openapi.yaml --output ./src/generated/api --client axios",
-    "generate:types": "NODE_OPTIONS=\"--max-old-space-size=8192\" npx type-crafter generate typescript-with-decoders ./docs/specs/types.spec.yaml ./src/generated/types SingleFile SingleFile && pnpm run generate:supabase:types && pnpm run format:generated && node scripts/fix-unused-imports.js",
+    "generate:types": "NODE_OPTIONS=\"--max-old-space-size=8192\" npx type-crafter generate typescript-with-decoders ./docs/specs/types.spec.yaml ./src/generated/types SingleFile SingleFile && pnpm run generate:supabase:types && pnpm run format:generated",
     "generate:supabase:types": "bash scripts/generate-supabase-types.sh",
     "generate:all": "pnpm run generate:api && pnpm run generate:types && pnpm run format:generated",
     "format": "npx prettier --write .",

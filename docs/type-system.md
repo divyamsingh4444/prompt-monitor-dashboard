@@ -132,7 +132,7 @@ Also generates service classes (`DevicesService`, `PromptsService`, etc.) used b
 The project uses `type-decoder` for runtime validation of JSONB fields:
 
 ```typescript
-import { decodeStringArray } from "@/lib/utils/decoders";
+import { decodeStringArray } from "@/types";
 
 // Safely decode JSONB array
 const ips = decodeStringArray(deviceData.ips);
@@ -188,7 +188,7 @@ const device: Device = {
 ### JSONB Decoding
 
 ```typescript
-import { decodeStringArray } from "@/lib/utils/decoders";
+import { decodeStringArray } from "@/types";
 import type { DatabaseDevice } from "@/types";
 
 const deviceData: DatabaseDevice = await getDevice();

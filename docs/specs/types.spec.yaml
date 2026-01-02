@@ -3,12 +3,6 @@ info:
   title: types generator - prompt-monitor-dashboard
 groupedTypes:
   DatabaseTypes:
-    # JSONB array decoder for string arrays
-    StringArray:
-      type: array
-      items:
-        type: string
-
     # Device Event Metadata (JSONB)
     DeviceEventMetadata:
       type: object

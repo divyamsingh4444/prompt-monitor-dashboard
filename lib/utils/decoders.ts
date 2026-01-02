@@ -1,6 +1,10 @@
 /**
  * Runtime validation decoders for JSONB fields from Supabase
  * These provide type-safe runtime validation for JSON data
+ * 
+ * Note: decodeStringArray is manually defined here because type-crafter
+ * doesn't generate decoders for simple array types (only for objects and enums).
+ * It's re-exported from @/types for consistency with other decoders.
  */
 
 import { decodeArray, decodeString } from "type-decoder";
