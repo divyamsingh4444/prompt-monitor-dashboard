@@ -21,8 +21,13 @@ import {
   Loader2,
 } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Button,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui";
 import { StatusBadge } from "@/components/status-badge";
 import { DetailModal } from "@/components/detail-modal";
 import { formatTimeAgo, formatTimestamp } from "@/lib/utils/time";
@@ -65,7 +70,7 @@ export default function DeviceDetailPage({
         .filter(
           (event: DeviceEvent) =>
             event.severity === DeviceEvent.severity.WARNING ||
-            event.severity === DeviceEvent.severity.CRITICAL,
+            event.severity === DeviceEvent.severity.CRITICAL
         )
         .map((event: DeviceEvent) => {
           // Map DeviceEvent severity to Alert severity
@@ -207,8 +212,8 @@ export default function DeviceDetailPage({
                       event.severity === "critical"
                         ? "bg-destructive/10 border-destructive/50 group-hover:bg-destructive/20 group-hover:border-destructive/70"
                         : event.severity === "warning"
-                          ? "bg-yellow-500/10 border-yellow-500/50 group-hover:bg-yellow-500/20 group-hover:border-yellow-500/70"
-                          : "bg-primary/10 border-primary/50 group-hover:bg-primary/20 group-hover:border-primary/70"
+                        ? "bg-yellow-500/10 border-yellow-500/50 group-hover:bg-yellow-500/20 group-hover:border-yellow-500/70"
+                        : "bg-primary/10 border-primary/50 group-hover:bg-primary/20 group-hover:border-primary/70"
                     }`}
                   >
                     <Activity
@@ -216,8 +221,8 @@ export default function DeviceDetailPage({
                         event.severity === "critical"
                           ? "text-destructive drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]"
                           : event.severity === "warning"
-                            ? "text-yellow-500 drop-shadow-[0_0_8px_rgba(250,204,21,0.6)]"
-                            : "text-primary drop-shadow-[0_0_8px_rgba(0,255,255,0.6)]"
+                          ? "text-yellow-500 drop-shadow-[0_0_8px_rgba(250,204,21,0.6)]"
+                          : "text-primary drop-shadow-[0_0_8px_rgba(0,255,255,0.6)]"
                       }`}
                     />
                   </div>

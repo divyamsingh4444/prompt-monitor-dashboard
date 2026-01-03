@@ -1,8 +1,7 @@
 "use client";
 
 import { RefreshCw, Search, LayoutGrid, List } from "lucide-react";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
+import { Button, Input } from "./ui";
 import type { StatsResponse } from "@/types";
 
 interface DashboardHeaderProps {

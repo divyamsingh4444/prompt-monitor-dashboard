@@ -2,14 +2,14 @@
 
 import { Copy, Check } from "lucide-react";
 import { useState } from "react";
-import { Button } from "./ui/button";
 import {
+  Button,
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "./ui/dialog";
+} from "./ui";
 import type { Json } from "@/types";
 
 interface DetailModalProps {

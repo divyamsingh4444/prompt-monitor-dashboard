@@ -7,7 +7,7 @@ import { DashboardHeader } from "@/components/dashboard-header";
 import { DeviceCard } from "@/components/device-card";
 import { useAutoRefresh } from "@/lib/hooks/use-auto-refresh";
 import { Loader2, Filter, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, ErrorBanner } from "@/components/ui";
 
 export default function DashboardPage() {
   const [devices, setDevices] = useState<Device[]>([]);
@@ -20,24 +20,52 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<DeviceStatus | null>(null);
+  const [statsError, setStatsError] = useState<string | null>(null);
+  const [devicesError, setDevicesError] = useState<string | null>(null);
 
   const fetchData = async () => {
+    setStatsError(null);
+    setDevicesError(null);
+
     try {
-      const [devicesData, statsData] = await Promise.all([
+      // Fetch devices and stats separately to handle errors independently
+      const [devicesResult, statsResult] = await Promise.allSettled([
         apiClient.getDevices({
           search: searchQuery || undefined,
           status: statusFilter || undefined,
         }),
         apiClient.getStats(),
       ]);
-      setDevices(devicesData);
-      setStats(statsData);
-    } catch (error) {
-      if (error instanceof ApiError) {
-        console.error(`API Error ${error.status}:`, error.message);
+
+      // Handle devices result
+      if (devicesResult.status === "fulfilled") {
+        setDevices(devicesResult.value);
+        setDevicesError(null);
       } else {
-        console.error("[v0] Dashboard fetch failed:", error);
+        const error = devicesResult.reason;
+        if (error instanceof ApiError) {
+          setDevicesError(`Failed to load devices (${error.status})`);
+        } else {
+          setDevicesError("Failed to load devices");
+        }
       }
+
+      // Handle stats result
+      if (statsResult.status === "fulfilled") {
+        setStats(statsResult.value);
+        setStatsError(null);
+      } else {
+        const error = statsResult.reason;
+        if (error instanceof ApiError) {
+          setStatsError("Unable to load dashboard statistics");
+        } else {
+          setStatsError("Unable to load dashboard statistics");
+        }
+      }
+    } catch (error) {
+      // Fallback error handling
+      setDevicesError("Failed to load devices");
+      setStatsError("Unable to load dashboard statistics");
     } finally {
       setLoading(false);
     }
@@ -75,6 +103,32 @@ export default function DashboardPage() {
 
   return (
     <div className="container mx-auto px-4 py-6 lg:py-8">
+      {/* Stats Error Banner */}
+      {statsError && !loading && (
+        <ErrorBanner
+          message={statsError}
+          variant="warning"
+          onRetry={() => {
+            setStatsError(null);
+            fetchData();
+          }}
+          className="mb-6"
+        />
+      )}
+
+      {/* Devices Error Banner */}
+      {devicesError && !loading && (
+        <ErrorBanner
+          message={devicesError}
+          variant="destructive"
+          onRetry={() => {
+            setDevicesError(null);
+            fetchData();
+          }}
+          className="mb-6"
+        />
+      )}
+
       <DashboardHeader
         stats={stats}
         onRefresh={refresh}
@@ -170,7 +224,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Empty State */}
-          {filteredDevices.length === 0 && !loading && (
+          {filteredDevices.length === 0 && !loading && !devicesError && (
             <div className="flex flex-col items-center justify-center min-h-[50vh] py-24">
               <div className="cyber-card border-dashed border-primary/30 p-14 max-w-lg w-full text-center space-y-6 hover:border-primary/50 transition-all duration-300">
                 <div className="w-20 h-20 mx-auto bg-primary/10 rounded-full flex items-center justify-center border border-primary/30 hover:bg-primary/20 hover:border-primary/50 transition-all duration-300">
