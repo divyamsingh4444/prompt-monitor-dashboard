@@ -207,6 +207,36 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /api/devices/{id}/audit-trail:
+    get:
+      tags:
+        - Devices
+      summary: Get unified device audit trail
+      description: Returns a unified chronological audit trail of all events (device events, prompts, compliance events, browser events) for a device.
+      operationId: getDeviceAuditTrail
+      parameters:
+        - name: id
+          in: path
+          description: Device ID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AuditTrailItem"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /api/prompt/{id}:
     get:
       tags:
@@ -727,6 +757,111 @@ components:
         - site
         - reason
         - timestamp
+
+    AuditTrailItem:
+      type: object
+      description: Unified audit trail item merging all event sources
+      properties:
+        id:
+          type: string
+          description: Item identifier
+        type:
+          type: string
+          enum: [device_event, prompt, compliance_event, browser_event]
+          description: Type of audit trail item
+        timestamp:
+          type: integer
+          format: int64
+          description: Timestamp in epoch milliseconds
+        severity:
+          type: string
+          enum: [info, warning, critical]
+          description: Event severity level (if applicable)
+        event_type:
+          type: string
+          description: Event type/category
+        device_id:
+          type: string
+          nullable: true
+          description: Associated device ID
+        description:
+          type: string
+          nullable: true
+          description: Event description
+        site:
+          type: string
+          nullable: true
+          description: Site associated with event
+        browser_name:
+          type: string
+          nullable: true
+          description: Browser name
+        profile_name:
+          type: string
+          nullable: true
+          description: Browser profile name
+        username:
+          type: string
+          nullable: true
+          description: Username
+        url:
+          type: string
+          nullable: true
+          description: URL associated with event
+        prompt:
+          type: string
+          nullable: true
+          description: Prompt text (for device events)
+        prompt_text:
+          type: string
+          nullable: true
+          description: Prompt text (for prompts)
+        is_flagged:
+          type: boolean
+          nullable: true
+          description: Whether prompt is flagged
+        event_id:
+          type: string
+          nullable: true
+          description: Compliance event ID
+        detected_at:
+          type: string
+          nullable: true
+          format: date-time
+          description: When compliance event was detected
+        user_context:
+          type: string
+          nullable: true
+          description: User context for compliance event
+        details:
+          type: object
+          nullable: true
+          description: Additional details (JSONB)
+        resolved:
+          type: boolean
+          nullable: true
+          description: Whether compliance event is resolved
+        reason:
+          type: string
+          nullable: true
+          description: Reason for compliance event/blocking
+        instance_id:
+          type: string
+          nullable: true
+          description: Browser instance ID
+        browser_version:
+          type: string
+          nullable: true
+          description: Browser version
+        hostname:
+          type: string
+          nullable: true
+          description: Hostname
+      required:
+        - id
+        - type
+        - timestamp
+        - event_type
 
     ErrorResponse:
       type: object

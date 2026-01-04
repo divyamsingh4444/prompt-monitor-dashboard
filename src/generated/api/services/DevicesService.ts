@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { AuditTrailItem } from "../models/AuditTrailItem";
 import type { BlockedPrompt } from "../models/BlockedPrompt";
 import type { Device } from "../models/Device";
 import type { DeviceEventsResponse } from "../models/DeviceEventsResponse";
@@ -112,6 +113,27 @@ export class DevicesService {
     return __request(OpenAPI, {
       method: "GET",
       url: "/api/devices/{id}/blocked",
+      path: {
+        id: id,
+      },
+      errors: {
+        500: `Server error`,
+      },
+    });
+  }
+  /**
+   * Get unified device audit trail
+   * Returns a unified chronological audit trail of all events (device events, prompts, compliance events, browser events) for a device.
+   * @param id Device ID
+   * @returns AuditTrailItem Successful response
+   * @throws ApiError
+   */
+  public static getDeviceAuditTrail(
+    id: string,
+  ): CancelablePromise<Array<AuditTrailItem>> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/devices/{id}/audit-trail",
       path: {
         id: id,
       },

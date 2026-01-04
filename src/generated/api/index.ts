@@ -8,6 +8,7 @@ export { OpenAPI } from "./core/OpenAPI";
 export type { OpenAPIConfig } from "./core/OpenAPI";
 
 export { Alert } from "./models/Alert";
+export { AuditTrailItem } from "./models/AuditTrailItem";
 export type { BlockedPrompt } from "./models/BlockedPrompt";
 export type { BrowserHeartbeatRequest } from "./models/BrowserHeartbeatRequest";
 export type { BrowserHeartbeatResponse } from "./models/BrowserHeartbeatResponse";

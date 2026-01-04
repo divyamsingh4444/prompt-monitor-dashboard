@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import type { RegisterBrowserRequest, RegisterBrowserResponse } from "@/types";
 import { requireAuth, AuthError } from "@/lib/auth";
+import { v4 as uuidv4 } from "uuid";
 
 export async function POST(request: NextRequest) {
   try {
@@ -48,6 +49,25 @@ export async function POST(request: NextRequest) {
         .eq("profile_name", body.profile_name);
 
       if (updateError) throw updateError;
+
+      // Create device event for browser update
+      const eventId = uuidv4();
+      const eventTimestamp = Date.now();
+      await supabase.from("device_events").insert({
+        id: eventId,
+        device_id: deviceId,
+        event_type: "browser_updated",
+        timestamp: eventTimestamp,
+        severity: "info",
+        description: `Browser ${body.browser_name} (${body.profile_name}) updated`,
+        browser_name: body.browser_name,
+        profile_name: body.profile_name,
+        metadata: {
+          instance_id: existingInstance.instance_id,
+          browser_version: body.browser_version,
+          extension_version: body.extension_version,
+        },
+      });
 
       // Return the existing instance_id
       const response: RegisterBrowserResponse = {
@@ -97,6 +117,25 @@ export async function POST(request: NextRequest) {
         }
         throw insertError;
       }
+
+      // Create device event for browser registration
+      const eventId = uuidv4();
+      const eventTimestamp = Date.now();
+      await supabase.from("device_events").insert({
+        id: eventId,
+        device_id: deviceId,
+        event_type: "browser_registered",
+        timestamp: eventTimestamp,
+        severity: "info",
+        description: `Browser ${body.browser_name} (${body.profile_name}) registered`,
+        browser_name: body.browser_name,
+        profile_name: body.profile_name,
+        metadata: {
+          instance_id: body.instance_id,
+          browser_version: body.browser_version,
+          extension_version: body.extension_version,
+        },
+      });
     }
 
     // Return response for new registration

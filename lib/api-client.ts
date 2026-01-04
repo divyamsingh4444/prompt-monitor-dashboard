@@ -17,6 +17,7 @@ import type {
   DeviceEventsResponse,
   BlockedPrompt,
   DeviceStatus,
+  AuditTrailItem,
 } from "@/src/generated/api";
 
 // Configure base URL
@@ -32,7 +33,7 @@ export class ApiError extends Error {
     message: string,
     public status: number,
     public response?: unknown,
-    public originalError?: GeneratedApiError,
+    public originalError?: GeneratedApiError
   ) {
     super(message);
     this.name = "ApiError";
@@ -58,7 +59,7 @@ async function unwrapPromise<T>(promise: Promise<T>): Promise<T> {
       throw new ApiError(
         err.body?.error || err.message || "API Error",
         err.status,
-        err.body,
+        err.body
       );
     }
     throw error;
@@ -78,7 +79,7 @@ export const apiClient = {
     status?: DeviceStatus;
   }): Promise<Device[]> => {
     return unwrapPromise(
-      DevicesService.listDevices(params?.search, params?.status),
+      DevicesService.listDevices(params?.search, params?.status)
     );
   },
 
@@ -96,6 +97,10 @@ export const apiClient = {
 
   getBlockedPrompts: async (id: string): Promise<BlockedPrompt[]> => {
     return unwrapPromise(DevicesService.getBlockedPrompts(id));
+  },
+
+  getDeviceAuditTrail: async (id: string): Promise<AuditTrailItem[]> => {
+    return unwrapPromise(DevicesService.getDeviceAuditTrail(id));
   },
 
   // Prompts

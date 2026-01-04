@@ -1,14 +1,8 @@
 "use client";
 
-import { use, useState, useEffect, useCallback } from "react";
+import { use, useState, useEffect, useCallback, useMemo } from "react";
 import { apiClient, ApiError } from "@/lib/api-client";
-import {
-  DeviceEvent,
-  Alert,
-  type Device,
-  type Prompt,
-  type Json,
-} from "@/types";
+import { type Device, type Json, AuditTrailItem, Alert } from "@/types";
 import { useAutoRefresh } from "@/lib/hooks/use-auto-refresh";
 import {
   ChevronLeft,
@@ -39,9 +33,7 @@ export default function DeviceDetailPage({
 }) {
   const { id } = use(params);
   const [device, setDevice] = useState<Device | null>(null);
-  const [events, setEvents] = useState<DeviceEvent[]>([]);
-  const [prompts, setPrompts] = useState<Prompt[]>([]);
-  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [auditTrail, setAuditTrail] = useState<AuditTrailItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [modalData, setModalData] = useState<{
@@ -56,43 +48,14 @@ export default function DeviceDetailPage({
 
   const fetchDeviceData = useCallback(async () => {
     try {
-      // Get events first (used for both events and alerts)
-      const [deviceData, eventsResponse, promptsData] = await Promise.all([
+      // Get device and unified audit trail
+      const [deviceData, auditTrailData] = await Promise.all([
         apiClient.getDevice(id),
-        apiClient.getDeviceEvents(id),
-        apiClient.getDevicePrompts(id),
+        apiClient.getDeviceAuditTrail(id),
       ]);
 
-      const eventsData = eventsResponse.events || [];
-
-      // Filter events to get alerts
-      const alertsData: Alert[] = eventsData
-        .filter(
-          (event: DeviceEvent) =>
-            event.severity === DeviceEvent.severity.WARNING ||
-            event.severity === DeviceEvent.severity.CRITICAL
-        )
-        .map((event: DeviceEvent) => {
-          // Map DeviceEvent severity to Alert severity
-          const severity =
-            event.severity === DeviceEvent.severity.CRITICAL
-              ? Alert.severity.CRITICAL
-              : Alert.severity.WARNING;
-
-          return {
-            id: event.id,
-            device_id: event.device_id ?? null,
-            alert_type: event.event_type,
-            severity,
-            matched_pattern: event.description,
-            timestamp: event.timestamp,
-          };
-        });
-
       setDevice(deviceData);
-      setEvents(eventsData);
-      setPrompts(promptsData);
-      setAlerts(alertsData);
+      setAuditTrail(auditTrailData);
     } catch (error: unknown) {
       if (error instanceof ApiError) {
         console.error(`API Error ${error.status}:`, error.message);
@@ -103,6 +66,49 @@ export default function DeviceDetailPage({
       setLoading(false);
     }
   }, [id]);
+
+  // Filter audit trail for each tab
+  const auditTrailItems = useMemo(() => auditTrail, [auditTrail]);
+
+  const prompts = useMemo(
+    () => auditTrail.filter((item) => item.type === AuditTrailItem.type.PROMPT),
+    [auditTrail]
+  );
+
+  const alerts = useMemo(() => {
+    return auditTrail
+      .filter(
+        (item) =>
+          item.severity === AuditTrailItem.severity.WARNING ||
+          item.severity === AuditTrailItem.severity.CRITICAL
+      )
+      .map((item) => {
+        const severity =
+          item.severity === AuditTrailItem.severity.CRITICAL
+            ? Alert.severity.CRITICAL
+            : Alert.severity.WARNING;
+
+        return {
+          id: item.id,
+          device_id: item.device_id ?? null,
+          alert_type: item.event_type,
+          severity,
+          matched_pattern:
+            item.description || item.reason || item.prompt || "Alert",
+          timestamp: item.timestamp,
+        };
+      });
+  }, [auditTrail]);
+
+  const blocked = useMemo(
+    () =>
+      auditTrail.filter(
+        (item) =>
+          item.type === AuditTrailItem.type.COMPLIANCE_EVENT &&
+          (item.event_type === "blocked" || item.reason)
+      ),
+    [auditTrail]
+  );
 
   const { refresh, isRefreshing } = useAutoRefresh({
     onRefresh: fetchDeviceData,
@@ -180,13 +186,13 @@ export default function DeviceDetailPage({
         </div>
       </div>
 
-      <Tabs defaultValue="timeline" className="space-y-6">
+      <Tabs defaultValue="audit-trail" className="space-y-6">
         <TabsList className="bg-transparent border-b-2 border-primary/20 w-full justify-start rounded-none h-auto p-0 gap-6 mb-2">
           <TabsTrigger
-            value="timeline"
+            value="audit-trail"
             className="cyber-tab text-xs lg:text-sm"
           >
-            TIMELINE
+            AUDIT TRAIL
           </TabsTrigger>
           <TabsTrigger value="prompts" className="cyber-tab text-xs lg:text-sm">
             PROMPTS
@@ -199,45 +205,61 @@ export default function DeviceDetailPage({
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="timeline" className="space-y-4">
-          {events.map((event) => (
+        <TabsContent value="audit-trail" className="space-y-4">
+          {auditTrailItems.map((item) => (
             <div
-              key={event.id}
+              key={item.id}
               className="cyber-card p-5 group hover:border-primary/50 transition-all duration-300"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex gap-4 flex-1">
                   <div
                     className={`p-2.5 rounded-sm border transition-all duration-300 group-hover:scale-110 ${
-                      event.severity === "critical"
+                      item.severity === AuditTrailItem.severity.CRITICAL
                         ? "bg-destructive/10 border-destructive/50 group-hover:bg-destructive/20 group-hover:border-destructive/70"
-                        : event.severity === "warning"
+                        : item.severity === AuditTrailItem.severity.WARNING
                         ? "bg-yellow-500/10 border-yellow-500/50 group-hover:bg-yellow-500/20 group-hover:border-yellow-500/70"
+                        : item.type === AuditTrailItem.type.PROMPT
+                        ? "bg-secondary/10 border-secondary/50 group-hover:bg-secondary/20 group-hover:border-secondary/70"
                         : "bg-primary/10 border-primary/50 group-hover:bg-primary/20 group-hover:border-primary/70"
                     }`}
                   >
-                    <Activity
-                      className={`w-4 h-4 transition-all ${
-                        event.severity === "critical"
-                          ? "text-destructive drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]"
-                          : event.severity === "warning"
-                          ? "text-yellow-500 drop-shadow-[0_0_8px_rgba(250,204,21,0.6)]"
-                          : "text-primary drop-shadow-[0_0_8px_rgba(0,255,255,0.6)]"
-                      }`}
-                    />
+                    {item.type === AuditTrailItem.type.PROMPT ? (
+                      <MessageSquare className="w-4 h-4 text-secondary drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]" />
+                    ) : item.severity === AuditTrailItem.severity.CRITICAL ? (
+                      <Activity className="w-4 h-4 text-destructive drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
+                    ) : item.severity === AuditTrailItem.severity.WARNING ? (
+                      <Activity className="w-4 h-4 text-yellow-500 drop-shadow-[0_0_8px_rgba(250,204,21,0.6)]" />
+                    ) : (
+                      <Activity className="w-4 h-4 text-primary drop-shadow-[0_0_8px_rgba(0,255,255,0.6)]" />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2 flex-wrap">
                       <span className="text-xs font-mono font-bold uppercase tracking-wider text-foreground">
-                        {event.event_type}
+                        {item.type === AuditTrailItem.type.PROMPT
+                          ? "PROMPT"
+                          : item.event_type.toUpperCase()}
                       </span>
                       <span className="text-[10px] text-muted-foreground font-mono opacity-80">
-                        {formatTimestamp(event.timestamp)}
+                        {formatTimestamp(item.timestamp)}
                       </span>
+                      {item.type === AuditTrailItem.type.PROMPT &&
+                        item.site && (
+                          <span className="text-[10px] font-mono text-secondary uppercase px-2 py-0.5 border border-secondary/50 bg-secondary/10 rounded">
+                            {item.site}
+                          </span>
+                        )}
                     </div>
-                    <p className="text-sm font-mono text-primary/90 leading-relaxed group-hover:text-primary transition-colors">
-                      {event.description}
-                    </p>
+                    {item.type === AuditTrailItem.type.PROMPT ? (
+                      <p className="text-sm font-mono text-primary/95 italic leading-relaxed group-hover:text-primary transition-colors">
+                        "{item.prompt_text || item.prompt}"
+                      </p>
+                    ) : (
+                      <p className="text-sm font-mono text-primary/90 leading-relaxed group-hover:text-primary transition-colors">
+                        {item.description || item.reason || item.event_type}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <Button
@@ -247,8 +269,8 @@ export default function DeviceDetailPage({
                   onClick={() =>
                     setModalData({
                       open: true,
-                      title: `EVENT_${event.id}`,
-                      data: event,
+                      title: `${item.type.toUpperCase()}_${item.id}`,
+                      data: item,
                     })
                   }
                 >
@@ -257,15 +279,15 @@ export default function DeviceDetailPage({
               </div>
             </div>
           ))}
-          {events.length === 0 && (
+          {auditTrailItems.length === 0 && (
             <EmptyState message="NO_EVENTS_FOUND_IN_LOGS" />
           )}
         </TabsContent>
 
         <TabsContent value="prompts" className="space-y-4">
-          {prompts.map((prompt) => (
+          {prompts.map((item) => (
             <div
-              key={prompt.id}
+              key={item.id}
               className="cyber-card p-5 group hover:border-primary/50 transition-all duration-300"
             >
               <div className="flex justify-between items-start mb-4">
@@ -275,11 +297,11 @@ export default function DeviceDetailPage({
                   </div>
                   <div className="px-3 py-1 border border-secondary/50 bg-secondary/10 rounded-sm group-hover:border-secondary/70 group-hover:bg-secondary/20 transition-all">
                     <span className="text-[10px] font-mono font-bold text-secondary uppercase">
-                      {prompt.site}
+                      {item.site || "Unknown"}
                     </span>
                   </div>
                   <span className="text-[10px] text-muted-foreground font-mono opacity-80">
-                    {formatTimestamp(prompt.timestamp)}
+                    {formatTimestamp(item.timestamp)}
                   </span>
                 </div>
                 <Button
@@ -289,8 +311,8 @@ export default function DeviceDetailPage({
                   onClick={() =>
                     setModalData({
                       open: true,
-                      title: `PROMPT_${prompt.id}`,
-                      data: prompt,
+                      title: `PROMPT_${item.id}`,
+                      data: item,
                     })
                   }
                 >
@@ -299,12 +321,16 @@ export default function DeviceDetailPage({
               </div>
               <div className="bg-black/30 p-4 rounded border border-primary/20 group-hover:border-primary/40 group-hover:bg-black/40 transition-all">
                 <p className="text-sm font-mono text-primary/95 italic leading-relaxed line-clamp-3">
-                  "{prompt.prompt_text}"
+                  "{item.prompt_text || item.prompt}"
                 </p>
               </div>
               <div className="mt-4 flex gap-4 text-[10px] font-mono text-muted-foreground uppercase flex-wrap">
-                <span className="opacity-80">BROWSER: {prompt.browser}</span>
-                {prompt.is_flagged && (
+                {item.browser_name && (
+                  <span className="opacity-80">
+                    BROWSER: {item.browser_name}
+                  </span>
+                )}
+                {item.is_flagged && (
                   <span className="text-destructive font-bold neon-text">
                     FLAGGED
                   </span>
@@ -376,11 +402,66 @@ export default function DeviceDetailPage({
           )}
         </TabsContent>
 
-        <TabsContent value="blocked">
-          <EmptyState
-            message="BLOCKED_EVENT_SUBSYSTEM_OFFLINE"
-            description="Scaffolding ready for future implementation"
-          />
+        <TabsContent value="blocked" className="space-y-4">
+          {blocked.map((item) => (
+            <div
+              key={item.id}
+              className="cyber-card p-5 border-destructive/40 group hover:border-destructive/60 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)] transition-all duration-300"
+            >
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-destructive/10 border border-destructive/50 rounded-sm group-hover:bg-destructive/20 group-hover:border-destructive/70 group-hover:scale-110 transition-all duration-300">
+                  <ShieldAlert className="w-5 h-5 text-destructive drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-start mb-3 flex-wrap gap-2">
+                    <div className="flex gap-3 items-center flex-wrap">
+                      <span className="text-xs font-mono font-bold text-destructive uppercase tracking-widest neon-text">
+                        BLOCKED
+                      </span>
+                      {item.site && (
+                        <span className="text-[10px] font-mono text-secondary uppercase px-2 py-0.5 border border-secondary/50 bg-secondary/10 rounded">
+                          {item.site}
+                        </span>
+                      )}
+                      <span className="text-[10px] text-muted-foreground font-mono opacity-80">
+                        {formatTimestamp(item.timestamp)}
+                      </span>
+                    </div>
+                    {item.severity && (
+                      <span
+                        className={`text-[10px] font-mono font-bold border px-2 py-1 rounded-sm transition-all ${
+                          item.severity === AuditTrailItem.severity.CRITICAL
+                            ? "text-destructive border-destructive bg-destructive/10 shadow-[0_0_8px_rgba(239,68,68,0.4)]"
+                            : "text-yellow-500 border-yellow-500 bg-yellow-500/10 shadow-[0_0_8px_rgba(250,204,21,0.4)]"
+                        }`}
+                      >
+                        {item.severity.toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm font-mono text-primary/90 mb-4 leading-relaxed">
+                    <span className="text-secondary font-bold">Reason: </span>
+                    {item.reason || item.description || "Blocked prompt"}
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 text-[10px] font-mono h-8 transition-all duration-300"
+                    onClick={() =>
+                      setModalData({
+                        open: true,
+                        title: `BLOCKED_${item.id}`,
+                        data: item,
+                      })
+                    }
+                  >
+                    VIEW_DETAILS
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+          {blocked.length === 0 && <EmptyState message="NO_BLOCKED_PROMPTS" />}
         </TabsContent>
       </Tabs>
 
