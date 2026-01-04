@@ -70,7 +70,7 @@ export function DeviceCard({ device }: DeviceCardProps) {
               <p
                 className={`text-2xl font-mono font-bold transition-all duration-300 ${
                   device.prompts_today > 0
-                    ? "text-accent neon-text group-hover:scale-110 inline-block"
+                    ? "text-accent group-hover:scale-110 inline-block"
                     : "text-muted-foreground"
                 }`}
               >
@@ -85,7 +85,7 @@ export function DeviceCard({ device }: DeviceCardProps) {
               <p
                 className={`text-2xl font-mono font-bold transition-all duration-300 ${
                   device.total_prompts > 0
-                    ? "text-primary neon-text group-hover:scale-110 inline-block"
+                    ? "text-primary group-hover:scale-110 inline-block"
                     : "text-muted-foreground"
                 }`}
               >

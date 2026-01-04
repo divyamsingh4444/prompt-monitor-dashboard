@@ -167,7 +167,7 @@ export default function DeviceDetailPage({
             <span className="text-[10px] font-mono text-muted-foreground uppercase mb-2 opacity-80">
               LAST_SEEN
             </span>
-            <span className="text-base font-mono font-bold text-accent neon-text">
+            <span className="text-base font-mono font-bold text-accent">
               {formatTimeAgo(device.last_seen)}
             </span>
           </div>

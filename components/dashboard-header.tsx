@@ -131,9 +131,7 @@ function StatCard({
         {label}
       </span>
       <span
-        className={`text-3xl font-mono font-bold ${color} transition-all duration-300 ${
-          highlight ? "neon-text" : ""
-        }`}
+        className={`text-3xl font-mono font-bold ${color} transition-all duration-300`}
       >
         {value.toLocaleString()}
       </span>
