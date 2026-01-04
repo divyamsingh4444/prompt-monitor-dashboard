@@ -105,7 +105,7 @@ export default function DeviceDetailPage({
       auditTrail.filter(
         (item) =>
           item.type === AuditTrailItem.type.COMPLIANCE_EVENT &&
-          (item.event_type === "blocked" || item.reason)
+          item.event_type === "blocked"
       ),
     [auditTrail]
   );
