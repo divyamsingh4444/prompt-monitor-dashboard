@@ -11,7 +11,6 @@ import {
   MessageSquare,
   AlertTriangle,
   ShieldAlert,
-  ExternalLink,
   Loader2,
 } from "lucide-react";
 import Link from "next/link";
@@ -24,6 +23,7 @@ import {
 } from "@/components/ui";
 import { StatusBadge } from "@/components/status-badge";
 import { DetailModal } from "@/components/detail-modal";
+import { EventDetail } from "@/components/event-detail";
 import { formatTimeAgo, formatTimestamp } from "@/lib/utils/time";
 
 export default function DeviceDetailPage({
@@ -206,125 +206,65 @@ export default function DeviceDetailPage({
         </TabsList>
 
         <TabsContent value="audit-trail" className="space-y-4">
-          {auditTrailItems.map((item) => (
-            <div
-              key={item.id}
-              className="cyber-card p-5 group hover:border-primary/50 transition-all duration-300"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex gap-4 flex-1">
-                  <div
-                    className={`p-2.5 rounded-sm border transition-all duration-300 group-hover:scale-110 ${
-                      item.severity === AuditTrailItem.severity.CRITICAL
-                        ? "bg-destructive/10 border-destructive/50 group-hover:bg-destructive/20 group-hover:border-destructive/70"
-                        : item.severity === AuditTrailItem.severity.WARNING
-                        ? "bg-yellow-500/10 border-yellow-500/50 group-hover:bg-yellow-500/20 group-hover:border-yellow-500/70"
-                        : item.type === AuditTrailItem.type.PROMPT
-                        ? "bg-secondary/10 border-secondary/50 group-hover:bg-secondary/20 group-hover:border-secondary/70"
-                        : "bg-primary/10 border-primary/50 group-hover:bg-primary/20 group-hover:border-primary/70"
-                    }`}
-                  >
-                    {item.type === AuditTrailItem.type.PROMPT ? (
-                      <MessageSquare className="w-4 h-4 text-secondary drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]" />
-                    ) : item.severity === AuditTrailItem.severity.CRITICAL ? (
-                      <Activity className="w-4 h-4 text-destructive drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]" />
-                    ) : item.severity === AuditTrailItem.severity.WARNING ? (
-                      <Activity className="w-4 h-4 text-yellow-500 drop-shadow-[0_0_8px_rgba(250,204,21,0.6)]" />
-                    ) : (
-                      <Activity className="w-4 h-4 text-primary drop-shadow-[0_0_8px_rgba(0,255,255,0.6)]" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-2 flex-wrap">
-                      <span className="text-xs font-mono font-bold uppercase tracking-wider text-foreground">
-                        {item.type === AuditTrailItem.type.PROMPT
-                          ? "PROMPT"
-                          : item.event_type.toUpperCase()}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground font-mono opacity-80">
-                        {formatTimestamp(item.timestamp)}
-                      </span>
-                      {item.type === AuditTrailItem.type.PROMPT &&
-                        item.site && (
-                          <span className="text-[10px] font-mono text-secondary uppercase px-2 py-0.5 border border-secondary/50 bg-secondary/10 rounded">
-                            {item.site}
-                          </span>
-                        )}
-                    </div>
-                    {item.type === AuditTrailItem.type.PROMPT ? (
-                      <p className="text-sm font-mono text-primary/95 italic leading-relaxed group-hover:text-primary transition-colors">
-                        "{item.prompt_text || item.prompt}"
-                      </p>
-                    ) : (
-                      <p className="text-sm font-mono text-primary/90 leading-relaxed group-hover:text-primary transition-colors">
-                        {item.description || item.reason || item.event_type}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="font-mono text-[10px] text-primary/50 hover:text-primary hover:bg-primary/10 transition-all duration-300 shrink-0"
-                  onClick={() =>
-                    setModalData({
-                      open: true,
-                      title: `${item.type.toUpperCase()}_${item.id}`,
-                      data: item,
-                    })
-                  }
-                >
-                  EXPAND_RAW <ExternalLink className="w-3 h-3 ml-2" />
-                </Button>
-              </div>
-            </div>
-          ))}
+          {auditTrailItems.map((item) => {
+            let variant: "event" | "prompt" | "warning" | "blocked" = "event";
+            let Icon = Activity;
+
+            if (item.severity === AuditTrailItem.severity.CRITICAL) {
+              variant = "blocked";
+            } else if (item.severity === AuditTrailItem.severity.WARNING) {
+              variant = "warning";
+            } else if (item.type === AuditTrailItem.type.PROMPT) {
+              variant = "prompt";
+              Icon = MessageSquare;
+            }
+
+            const title =
+              item.type === AuditTrailItem.type.PROMPT
+                ? "PROMPT"
+                : item.event_type.toUpperCase();
+
+            const content =
+              item.type === AuditTrailItem.type.PROMPT
+                ? `"${item.prompt_text || item.prompt}"`
+                : item.description || item.reason || item.event_type;
+
+            const badges =
+              item.type === AuditTrailItem.type.PROMPT && item.site
+                ? [{ label: item.site, variant: "secondary" as const }]
+                : [];
+
+            return (
+              <EventDetail
+                key={item.id}
+                id={item.id}
+                timestamp={item.timestamp}
+                icon={Icon}
+                title={title}
+                content={content}
+                variant={variant}
+                badges={badges}
+                contentBox={item.type === AuditTrailItem.type.PROMPT}
+                contentItalic={item.type === AuditTrailItem.type.PROMPT}
+                onExpand={() =>
+                  setModalData({
+                    open: true,
+                    title: `${item.type.toUpperCase()}_${item.id}`,
+                    data: item,
+                  })
+                }
+              />
+            );
+          })}
           {auditTrailItems.length === 0 && (
             <EmptyState message="NO_EVENTS_FOUND_IN_LOGS" />
           )}
         </TabsContent>
 
         <TabsContent value="prompts" className="space-y-4">
-          {prompts.map((item) => (
-            <div
-              key={item.id}
-              className="cyber-card p-5 group hover:border-primary/50 transition-all duration-300"
-            >
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex gap-3 items-center flex-wrap">
-                  <div className="bg-primary/10 p-2 border border-primary/30 rounded-sm group-hover:bg-primary/20 group-hover:border-primary/50 transition-all duration-300 group-hover:scale-110">
-                    <MessageSquare className="w-4 h-4 text-primary drop-shadow-[0_0_6px_rgba(0,255,255,0.6)]" />
-                  </div>
-                  <div className="px-3 py-1 border border-secondary/50 bg-secondary/10 rounded-sm group-hover:border-secondary/70 group-hover:bg-secondary/20 transition-all">
-                    <span className="text-[10px] font-mono font-bold text-secondary uppercase">
-                      {item.site || "Unknown"}
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-muted-foreground font-mono opacity-80">
-                    {formatTimestamp(item.timestamp)}
-                  </span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="font-mono text-[10px] text-primary/50 hover:text-primary hover:bg-primary/10 transition-all duration-300 h-auto p-0 shrink-0"
-                  onClick={() =>
-                    setModalData({
-                      open: true,
-                      title: `PROMPT_${item.id}`,
-                      data: item,
-                    })
-                  }
-                >
-                  VIEW_DETAILS
-                </Button>
-              </div>
-              <div className="bg-black/30 p-4 rounded border border-primary/20 group-hover:border-primary/40 group-hover:bg-black/40 transition-all">
-                <p className="text-sm font-mono text-primary/95 italic leading-relaxed line-clamp-3">
-                  "{item.prompt_text || item.prompt}"
-                </p>
-              </div>
-              <div className="mt-4 flex gap-4 text-[10px] font-mono text-muted-foreground uppercase flex-wrap">
+          {prompts.map((item) => {
+            const metadata = (
+              <div className="flex gap-4 text-[10px] font-mono text-muted-foreground uppercase flex-wrap">
                 {item.browser_name && (
                   <span className="opacity-80">
                     BROWSER: {item.browser_name}
@@ -336,8 +276,36 @@ export default function DeviceDetailPage({
                   </span>
                 )}
               </div>
-            </div>
-          ))}
+            );
+
+            return (
+              <EventDetail
+                key={item.id}
+                id={item.id}
+                timestamp={item.timestamp}
+                icon={MessageSquare}
+                title="PROMPT"
+                content={`"${item.prompt_text || item.prompt}"`}
+                variant="prompt"
+                badges={
+                  item.site
+                    ? [{ label: item.site || "Unknown", variant: "secondary" }]
+                    : []
+                }
+                contentBox={true}
+                contentItalic={true}
+                metadata={metadata}
+                expandLabel="VIEW_DETAILS"
+                onExpand={() =>
+                  setModalData({
+                    open: true,
+                    title: `PROMPT_${item.id}`,
+                    data: item,
+                  })
+                }
+              />
+            );
+          })}
           {prompts.length === 0 && (
             <EmptyState message="NO_PROMPT_CAPTURE_DATA" />
           )}
@@ -345,57 +313,31 @@ export default function DeviceDetailPage({
 
         <TabsContent value="alerts" className="space-y-4">
           {alerts.map((alert) => (
-            <div
+            <EventDetail
               key={alert.id}
-              className="cyber-card p-5 border-destructive/40 group hover:border-destructive/60 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)] transition-all duration-300"
-            >
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-destructive/10 border border-destructive/50 rounded-sm group-hover:bg-destructive/20 group-hover:border-destructive/70 group-hover:scale-110 transition-all duration-300">
-                  <ShieldAlert className="w-5 h-5 text-destructive drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start mb-3 flex-wrap gap-2">
-                    <div className="flex gap-3 items-center flex-wrap">
-                      <span className="text-xs font-mono font-bold text-destructive uppercase tracking-widest neon-text">
-                        {alert.alert_type} DETECTED
-                      </span>
-                      <span className="text-[10px] text-muted-foreground font-mono opacity-80">
-                        {formatTimestamp(alert.timestamp)}
-                      </span>
-                    </div>
-                    <span
-                      className={`text-[10px] font-mono font-bold border px-2 py-1 rounded-sm transition-all ${
-                        alert.severity === "critical"
-                          ? "text-destructive border-destructive bg-destructive/10 shadow-[0_0_8px_rgba(239,68,68,0.4)]"
-                          : "text-yellow-500 border-yellow-500 bg-yellow-500/10 shadow-[0_0_8px_rgba(250,204,21,0.4)]"
-                      }`}
-                    >
-                      {alert.severity.toUpperCase()}
-                    </span>
-                  </div>
-                  <p className="text-sm font-mono text-primary/90 mb-4 leading-relaxed">
-                    Sensitive pattern match:{" "}
-                    <span className="text-secondary font-bold">
-                      {alert.matched_pattern}
-                    </span>
-                  </p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 text-[10px] font-mono h-8 transition-all duration-300"
-                    onClick={() =>
-                      setModalData({
-                        open: true,
-                        title: `ALERT_${alert.id}`,
-                        data: alert,
-                      })
-                    }
-                  >
-                    INVESTIGATE_EVENT
-                  </Button>
-                </div>
-              </div>
-            </div>
+              id={alert.id}
+              timestamp={alert.timestamp}
+              icon={ShieldAlert}
+              title={`${alert.alert_type} DETECTED`}
+              content={`Sensitive pattern match: ${alert.matched_pattern}`}
+              variant="warning"
+              badges={[
+                {
+                  label: alert.severity.toUpperCase(),
+                  variant: (alert.severity === "critical"
+                    ? "destructive"
+                    : "warning") as "destructive" | "warning",
+                },
+              ]}
+              expandLabel="INVESTIGATE_EVENT"
+              onExpand={() =>
+                setModalData({
+                  open: true,
+                  title: `ALERT_${alert.id}`,
+                  data: alert,
+                })
+              }
+            />
           ))}
           {alerts.length === 0 && (
             <EmptyState message="NO_SECURITY_ALERTS_DETECTED" />
@@ -403,64 +345,47 @@ export default function DeviceDetailPage({
         </TabsContent>
 
         <TabsContent value="blocked" className="space-y-4">
-          {blocked.map((item) => (
-            <div
-              key={item.id}
-              className="cyber-card p-5 border-destructive/40 group hover:border-destructive/60 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)] transition-all duration-300"
-            >
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-destructive/10 border border-destructive/50 rounded-sm group-hover:bg-destructive/20 group-hover:border-destructive/70 group-hover:scale-110 transition-all duration-300">
-                  <ShieldAlert className="w-5 h-5 text-destructive drop-shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start mb-3 flex-wrap gap-2">
-                    <div className="flex gap-3 items-center flex-wrap">
-                      <span className="text-xs font-mono font-bold text-destructive uppercase tracking-widest neon-text">
-                        BLOCKED
-                      </span>
-                      {item.site && (
-                        <span className="text-[10px] font-mono text-secondary uppercase px-2 py-0.5 border border-secondary/50 bg-secondary/10 rounded">
-                          {item.site}
-                        </span>
-                      )}
-                      <span className="text-[10px] text-muted-foreground font-mono opacity-80">
-                        {formatTimestamp(item.timestamp)}
-                      </span>
-                    </div>
-                    {item.severity && (
-                      <span
-                        className={`text-[10px] font-mono font-bold border px-2 py-1 rounded-sm transition-all ${
-                          item.severity === AuditTrailItem.severity.CRITICAL
-                            ? "text-destructive border-destructive bg-destructive/10 shadow-[0_0_8px_rgba(239,68,68,0.4)]"
-                            : "text-yellow-500 border-yellow-500 bg-yellow-500/10 shadow-[0_0_8px_rgba(250,204,21,0.4)]"
-                        }`}
-                      >
-                        {item.severity.toUpperCase()}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm font-mono text-primary/90 mb-4 leading-relaxed">
-                    <span className="text-secondary font-bold">Reason: </span>
-                    {item.reason || item.description || "Blocked prompt"}
-                  </p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 text-[10px] font-mono h-8 transition-all duration-300"
-                    onClick={() =>
-                      setModalData({
-                        open: true,
-                        title: `BLOCKED_${item.id}`,
-                        data: item,
-                      })
-                    }
-                  >
-                    VIEW_DETAILS
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ))}
+          {blocked.map((item) => {
+            const badges: Array<{
+              label: string;
+              variant?: "default" | "secondary" | "destructive" | "warning";
+            }> = [];
+            if (item.site) {
+              badges.push({ label: item.site, variant: "secondary" });
+            }
+            if (item.severity) {
+              badges.push({
+                label: item.severity.toUpperCase(),
+                variant:
+                  item.severity === AuditTrailItem.severity.CRITICAL
+                    ? ("destructive" as const)
+                    : ("warning" as const),
+              });
+            }
+
+            return (
+              <EventDetail
+                key={item.id}
+                id={item.id}
+                timestamp={item.timestamp}
+                icon={ShieldAlert}
+                title="BLOCKED"
+                content={`Reason: ${
+                  item.reason || item.description || "Blocked prompt"
+                }`}
+                variant="blocked"
+                badges={badges}
+                expandLabel="VIEW_DETAILS"
+                onExpand={() =>
+                  setModalData({
+                    open: true,
+                    title: `BLOCKED_${item.id}`,
+                    data: item,
+                  })
+                }
+              />
+            );
+          })}
           {blocked.length === 0 && <EmptyState message="NO_BLOCKED_PROMPTS" />}
         </TabsContent>
       </Tabs>
