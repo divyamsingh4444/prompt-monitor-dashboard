@@ -45,6 +45,7 @@ export function DashboardHeader({
             value={stats.active_devices}
             color="text-accent"
             highlight={stats.active_devices > 0}
+            highlightColor="green"
           />
           <StatCard
             label="Inactive"
@@ -56,6 +57,7 @@ export function DashboardHeader({
             value={stats.prompts_today}
             color="text-secondary"
             highlight={stats.prompts_today > 0}
+            highlightColor="purple"
           />
 
           <Button
@@ -113,19 +115,29 @@ function StatCard({
   value,
   color = "text-primary",
   highlight = false,
+  highlightColor = "cyan",
 }: {
   label: string;
   value: number;
   color?: string;
   highlight?: boolean;
+  highlightColor?: "cyan" | "purple" | "green";
 }) {
+  const highlightStyles = {
+    cyan: highlight
+      ? "border-primary/60 shadow-[0_0_20px_rgba(0,255,255,0.25)] hover:shadow-[0_0_25px_rgba(0,255,255,0.35)]"
+      : "hover:border-primary/40",
+    purple: highlight
+      ? "border-secondary/60 shadow-[0_0_20px_rgba(200,100,255,0.25)] hover:shadow-[0_0_25px_rgba(200,100,255,0.35)]"
+      : "hover:border-secondary/40",
+    green: highlight
+      ? "border-accent/60 shadow-[0_0_20px_rgba(0,255,150,0.25)] hover:shadow-[0_0_25px_rgba(0,255,150,0.35)]"
+      : "hover:border-accent/40",
+  };
+
   return (
     <div
-      className={`cyber-card p-4 px-5 flex flex-col items-center justify-center min-w-[120px] transition-all duration-300 ${
-        highlight
-          ? "border-primary/60 shadow-[0_0_20px_rgba(0,255,255,0.25)] hover:shadow-[0_0_25px_rgba(0,255,255,0.35)]"
-          : "hover:border-primary/40"
-      }`}
+      className={`cyber-card p-4 px-5 flex flex-col items-center justify-center min-w-[120px] transition-all duration-300 ${highlightStyles[highlightColor]}`}
     >
       <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider mb-2 opacity-90">
         {label}

@@ -118,7 +118,7 @@ export function DetailModal({
 
           {/* JSON Display */}
           <div className="relative">
-            <pre className="bg-black/70 p-5 rounded-lg border border-primary/60 overflow-auto max-h-[65vh] font-mono text-xs leading-relaxed text-primary/95 shadow-2xl shadow-black/50 scrollbar-thin scrollbar-thumb-primary/40 scrollbar-track-transparent hover:scrollbar-thumb-primary/60 transition-colors">
+            <pre className="bg-black/70 p-5 rounded-lg border border-primary/60 overflow-auto max-h-[65vh] font-mono text-xs leading-relaxed text-foreground/90 shadow-2xl shadow-black/50 scrollbar-thin scrollbar-thumb-primary/40 scrollbar-track-transparent hover:scrollbar-thumb-primary/60 transition-colors">
               <code className="block whitespace-pre-wrap break-words">
                 {jsonString}
               </code>

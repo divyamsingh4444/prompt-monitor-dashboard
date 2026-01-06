@@ -43,8 +43,8 @@ const variantStyles = {
     cardBarClass: "event-detail-event",
     titleColor: "text-foreground",
     titleGlow: "",
-    contentColor: "text-primary/90",
-    contentHoverColor: "group-hover:text-primary",
+    contentColor: "text-foreground/90",
+    contentHoverColor: "group-hover:text-foreground",
   },
   prompt: {
     iconBg: "bg-green-800/20",
@@ -59,8 +59,8 @@ const variantStyles = {
     cardBarClass: "event-detail-prompt",
     titleColor: "text-green-600",
     titleGlow: "",
-    contentColor: "text-primary/90",
-    contentHoverColor: "group-hover:text-primary",
+    contentColor: "text-foreground/90",
+    contentHoverColor: "group-hover:text-foreground",
   },
   warning: {
     iconBg: "bg-yellow-500/10",
@@ -75,8 +75,8 @@ const variantStyles = {
     cardBarClass: "event-detail-warning",
     titleColor: "text-yellow-500",
     titleGlow: "",
-    contentColor: "text-primary/90",
-    contentHoverColor: "group-hover:text-primary",
+    contentColor: "text-foreground/90",
+    contentHoverColor: "group-hover:text-foreground",
   },
   blocked: {
     iconBg: "bg-destructive/10",
@@ -91,8 +91,8 @@ const variantStyles = {
     cardBarClass: "event-detail-blocked",
     titleColor: "text-destructive",
     titleGlow: "",
-    contentColor: "text-primary/90",
-    contentHoverColor: "group-hover:text-primary",
+    contentColor: "text-foreground/90",
+    contentHoverColor: "group-hover:text-foreground",
   },
 };
 

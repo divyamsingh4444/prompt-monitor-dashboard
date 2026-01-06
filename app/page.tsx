@@ -6,8 +6,9 @@ import { DeviceStatus, type Device, type StatsResponse } from "@/types";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { DeviceCard } from "@/components/device-card";
 import { useAutoRefresh } from "@/lib/hooks/use-auto-refresh";
-import { Loader2, Filter, X } from "lucide-react";
-import { Button, ErrorBanner } from "@/components/ui";
+import { Loader2, Filter, X, AlertCircle } from "lucide-react";
+import { Button, ErrorDialog } from "@/components/ui";
+import { cn } from "@/lib/utils";
 
 export default function DashboardPage() {
   const [devices, setDevices] = useState<Device[]>([]);
@@ -101,31 +102,57 @@ export default function DashboardPage() {
     return counts;
   }, [devices]);
 
+  // Show error dialog only for stats errors (devices errors show in empty state)
+  const [statsErrorDialogOpen, setStatsErrorDialogOpen] = useState(false);
+  const [statsErrorShown, setStatsErrorShown] = useState(false);
+
+  // Show dialog when stats error appears (only once per error)
+  useEffect(() => {
+    if (statsError && !loading && !statsErrorShown) {
+      setStatsErrorDialogOpen(true);
+      setStatsErrorShown(true);
+    }
+    // Reset errorShown when error clears
+    if (!statsError) {
+      setStatsErrorShown(false);
+    }
+  }, [statsError, loading, statsErrorShown]);
+
+  const handleStatsErrorRetry = () => {
+    setStatsErrorShown(false);
+    setStatsError(null);
+    fetchData();
+  };
+
+  const handleStatsErrorDismiss = () => {
+    setStatsErrorDialogOpen(false);
+  };
+
+  const handleDevicesErrorRetry = () => {
+    setDevicesError(null);
+    fetchData();
+  };
+
+  const handleDevicesErrorDismiss = () => {
+    setDevicesError(null);
+  };
+
   return (
     <div className="container mx-auto px-4 py-6 lg:py-8">
-      {/* Stats Error Banner */}
-      {statsError && !loading && (
-        <ErrorBanner
+      {/* Error Dialog - Only for stats errors */}
+      {statsError && (
+        <ErrorDialog
+          open={statsErrorDialogOpen}
+          onOpenChange={(open) => {
+            setStatsErrorDialogOpen(open);
+            if (!open) {
+              handleStatsErrorDismiss();
+            }
+          }}
           message={statsError}
           variant="warning"
-          onRetry={() => {
-            setStatsError(null);
-            fetchData();
-          }}
-          className="mb-6"
-        />
-      )}
-
-      {/* Devices Error Banner */}
-      {devicesError && !loading && (
-        <ErrorBanner
-          message={devicesError}
-          variant="destructive"
-          onRetry={() => {
-            setDevicesError(null);
-            fetchData();
-          }}
-          className="mb-6"
+          title="Warning"
+          onRetry={handleStatsErrorRetry}
         />
       )}
 
@@ -224,35 +251,81 @@ export default function DashboardPage() {
           </div>
 
           {/* Empty State */}
-          {filteredDevices.length === 0 && !loading && !devicesError && (
+          {filteredDevices.length === 0 && !loading && (
             <div className="flex flex-col items-center justify-center min-h-[50vh] py-24">
-              <div className="cyber-card border-dashed border-primary/30 p-14 max-w-lg w-full text-center space-y-6 hover:border-primary/50 transition-all duration-300">
-                <div className="w-20 h-20 mx-auto bg-primary/10 rounded-full flex items-center justify-center border border-primary/30 hover:bg-primary/20 hover:border-primary/50 transition-all duration-300">
-                  <Filter className="w-10 h-10 text-primary/60 drop-shadow-[0_0_8px_rgba(0,255,255,0.4)]" />
+              <div
+                className={cn(
+                  "cyber-card border-dashed p-14 max-w-lg w-full text-center space-y-6 transition-all duration-300",
+                  devicesError
+                    ? "border-destructive/30 hover:border-destructive/50"
+                    : "border-primary/30 hover:border-primary/50"
+                )}
+              >
+                <div
+                  className={cn(
+                    "w-20 h-20 mx-auto rounded-full flex items-center justify-center border transition-all duration-300",
+                    devicesError
+                      ? "bg-destructive/10 border-destructive/30 hover:bg-destructive/20 hover:border-destructive/50"
+                      : "bg-primary/10 border-primary/30 hover:bg-primary/20 hover:border-primary/50"
+                  )}
+                >
+                  {devicesError ? (
+                    <AlertCircle className="w-10 h-10 text-destructive/60 drop-shadow-[0_0_8px_rgba(239,68,68,0.4)]" />
+                  ) : (
+                    <Filter className="w-10 h-10 text-primary/60 drop-shadow-[0_0_8px_rgba(0,255,255,0.4)]" />
+                  )}
                 </div>
                 <div className="space-y-3">
-                  <p className="font-mono text-primary font-bold tracking-widest text-base uppercase neon-text">
+                  <p
+                    className={cn(
+                      "font-mono font-bold tracking-widest text-base uppercase neon-text",
+                      devicesError ? "text-destructive" : "text-primary"
+                    )}
+                  >
                     No Devices Found
                   </p>
                   <p className="font-mono text-muted-foreground text-sm leading-relaxed opacity-90 max-w-md mx-auto">
-                    {searchQuery || statusFilter
+                    {devicesError
+                      ? devicesError
+                      : searchQuery || statusFilter
                       ? "Try adjusting your search or filter criteria"
                       : "No terminals detected in network scan"}
                   </p>
                 </div>
-                {(searchQuery || statusFilter) && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="mt-6 font-mono text-xs uppercase tracking-wider border-primary/40 hover:border-primary/70 hover:bg-primary/10 transition-all duration-300"
-                    onClick={() => {
-                      setSearchQuery("");
-                      setStatusFilter(null);
-                    }}
-                  >
-                    Clear Filters
-                  </Button>
-                )}
+                <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
+                  {devicesError ? (
+                    <>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="font-mono text-xs uppercase tracking-wider bg-destructive/20 hover:bg-destructive/30 text-destructive border-destructive/40"
+                        onClick={handleDevicesErrorRetry}
+                      >
+                        Retry
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="font-mono text-xs uppercase tracking-wider border-destructive/40 hover:border-destructive/70 hover:bg-destructive/10"
+                        onClick={handleDevicesErrorDismiss}
+                      >
+                        Dismiss
+                      </Button>
+                    </>
+                  ) : searchQuery || statusFilter ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="font-mono text-xs uppercase tracking-wider border-primary/40 hover:border-primary/70 hover:bg-primary/10 transition-all duration-300"
+                      onClick={() => {
+                        setSearchQuery("");
+                        setStatusFilter(null);
+                      }}
+                    >
+                      Clear Filters
+                    </Button>
+                  ) : null}
+                </div>
               </div>
             </div>
           )}
