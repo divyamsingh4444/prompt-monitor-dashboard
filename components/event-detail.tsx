@@ -1,8 +1,7 @@
 "use client";
 
 import { type ReactNode } from "react";
-import { type LucideIcon, ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui";
+import { type LucideIcon, Clock, Hash } from "lucide-react";
 import { formatTimestamp } from "@/lib/utils/time";
 import { type AuditTrailItem } from "@/types";
 
@@ -124,75 +123,106 @@ export function EventDetail({
 
   return (
     <div
-      className={`cyber-card ${styles.cardBarClass} p-5 group transition-all duration-300 ${styles.cardBorder} ${styles.cardHoverBorder} ${styles.cardHoverShadow}`}
+      onClick={onExpand}
+      className={`cyber-card ${
+        styles.cardBarClass
+      } p-6 group transition-all duration-300 ${styles.cardBorder} ${
+        styles.cardHoverBorder
+      } ${styles.cardHoverShadow} hover:shadow-lg ${
+        onExpand ? "cursor-pointer active:scale-[0.98]" : ""
+      }`}
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex gap-4 flex-1">
-          <div
-            className={`p-2.5 rounded-sm border transition-all duration-300 group-hover:scale-110 ${styles.iconBg} ${styles.iconBorder} ${styles.iconHoverBg} ${styles.iconHoverBorder}`}
-          >
-            <Icon
-              className={`w-4 h-4 ${styles.iconColor} ${styles.iconGlow}`}
-            />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 mb-2 flex-wrap">
-              <span
-                className={`text-xs font-mono font-bold uppercase tracking-wider ${
-                  styles.titleColor
-                } ${styles.titleGlow || ""}`}
+      <div className="flex flex-col gap-4">
+        {/* Header Row */}
+        <div className="flex items-start gap-6">
+          <div className="flex gap-5 flex-1 min-w-0">
+            {/* Icon Container - Enhanced */}
+            <div className="flex-shrink-0">
+              <div
+                className={`p-3 rounded-md border-2 transition-all duration-300 group-hover:scale-110 ${styles.iconBg} ${styles.iconBorder} ${styles.iconHoverBg} ${styles.iconHoverBorder} relative overflow-hidden`}
               >
-                {title}
-              </span>
-              <span className="text-[10px] text-muted-foreground font-mono opacity-80">
-                {formatTimestamp(timestamp)}
-              </span>
-              {badges.map((badge, index) => (
-                <span
-                  key={index}
-                  className={`text-[10px] font-mono font-bold border px-2 py-0.5 rounded-sm transition-all ${
-                    badgeStyles[badge.variant || "default"]
-                  }`}
-                >
-                  {badge.label}
-                </span>
-              ))}
-            </div>
-            {contentBox ? (
-              <div className="bg-black/30 p-4 rounded border border-green-800/30 group-hover:border-green-800/50 group-hover:bg-black/40 transition-all">
-                <p
-                  className={`text-sm font-mono ${
-                    contentItalic ? "italic" : ""
-                  } ${styles.contentColor} leading-relaxed line-clamp-3 ${
-                    styles.contentHoverColor
-                  } transition-colors`}
-                >
-                  {content}
-                </p>
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <Icon
+                  className={`w-5 h-5 ${styles.iconColor} ${styles.iconGlow} relative z-10`}
+                />
               </div>
-            ) : (
-              <p
-                className={`text-sm font-mono ${
-                  contentItalic ? "italic" : ""
-                } ${styles.contentColor} leading-relaxed ${
-                  styles.contentHoverColor
-                } transition-colors`}
-              >
-                {content}
-              </p>
-            )}
-            {metadata && <div className="mt-4">{metadata}</div>}
+            </div>
+
+            {/* Header Section */}
+            <div className="flex-1 min-w-0 space-y-2">
+              <div className="flex items-center gap-3 flex-wrap">
+                <span
+                  className={`text-sm font-mono font-bold uppercase tracking-wider ${
+                    styles.titleColor
+                  } ${
+                    styles.titleGlow || ""
+                  } group-hover:scale-105 transition-transform duration-300`}
+                >
+                  {title}
+                </span>
+                {badges.map((badge, index) => (
+                  <span
+                    key={index}
+                    className={`text-[10px] font-mono font-bold border px-2.5 py-1 rounded-md transition-all hover:scale-105 ${
+                      badgeStyles[badge.variant || "default"]
+                    }`}
+                  >
+                    {badge.label}
+                  </span>
+                ))}
+              </div>
+
+              {/* Timestamp and ID Row */}
+              <div className="flex items-center gap-4 flex-wrap text-[10px] font-mono text-muted-foreground/90">
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-3 h-3 opacity-70" />
+                  <span className="opacity-90">
+                    {formatTimestamp(timestamp)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 opacity-60">
+                  <Hash className="w-3 h-3" />
+                  <span className="font-mono break-all">{id}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        {onExpand && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="font-mono text-[10px] text-primary/50 hover:text-primary hover:bg-primary/10 transition-all duration-300 shrink-0"
-            onClick={onExpand}
+
+        {/* Content Section - Full Width for Prompts */}
+        {contentBox ? (
+          <div
+            className={`w-full bg-black/40 p-4 rounded-md border-2 ${
+              variant === "prompt" ? "border-green-800/40" : "border-primary/20"
+            } group-hover:border-primary/40 group-hover:bg-black/50 transition-all duration-300 shadow-inner`}
           >
-            {expandLabel} <ExternalLink className="w-3 h-3 ml-2" />
-          </Button>
+            <p
+              className={`text-sm font-mono ${contentItalic ? "italic" : ""} ${
+                styles.contentColor
+              } leading-relaxed ${
+                styles.contentHoverColor
+              } transition-colors break-words`}
+            >
+              {content}
+            </p>
+          </div>
+        ) : (
+          <div className="relative">
+            <p
+              className={`text-sm font-mono ${contentItalic ? "italic" : ""} ${
+                styles.contentColor
+              } leading-relaxed ${
+                styles.contentHoverColor
+              } transition-colors break-words`}
+            >
+              {content}
+            </p>
+          </div>
+        )}
+
+        {/* Metadata Section */}
+        {metadata && (
+          <div className="pt-2 border-t border-primary/10">{metadata}</div>
         )}
       </div>
     </div>
