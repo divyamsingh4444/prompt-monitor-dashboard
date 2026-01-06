@@ -4,5 +4,6 @@
   "files.exclude": {
     "**/.pnpm": false
   },
-  "typescript.preferences.useLabelDetailsInCompletionEntries": true
+  "typescript.preferences.useLabelDetailsInCompletionEntries": true,
+  "css.lint.unknownAtRules": "ignore"
 }
