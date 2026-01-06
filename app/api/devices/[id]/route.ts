@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import type { Device, PromptCount, DatabaseDevice } from "@/types";
-import { DeviceStatus, decodeSupabaseError } from "@/types";
+import { DeviceStatus } from "@/types";
 import { decodeStringArray } from "@/types";
+import { handleApiError } from "@/lib/utils/server";
 
 export async function GET(
   request: NextRequest,
@@ -18,13 +19,6 @@ export async function GET(
       .single();
 
     if (error) {
-      const decodedError = decodeSupabaseError(error);
-      if (decodedError && decodedError.code === "PGRST116") {
-        return NextResponse.json(
-          { error: "Device not found" },
-          { status: 404 },
-        );
-      }
       throw error;
     }
 
@@ -94,10 +88,6 @@ export async function GET(
 
     return NextResponse.json(device);
   } catch (error) {
-    console.error("Error fetching device:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch device" },
-      { status: 500 },
-    );
+    return handleApiError(error, "fetching device");
   }
 }

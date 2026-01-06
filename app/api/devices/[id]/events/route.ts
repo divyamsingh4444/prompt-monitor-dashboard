@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import type { DatabaseDeviceEvent } from "@/types";
 import { DeviceEvent } from "@/src/generated/api";
 import { decodeDeviceEventMetadata, decodeSeverity } from "@/types";
+import { handleApiError } from "@/lib/utils/server";
 
 export async function GET(
   request: NextRequest,
@@ -70,10 +71,6 @@ export async function GET(
 
     return NextResponse.json({ events, stats });
   } catch (error) {
-    console.error("Error fetching device events:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch device events" },
-      { status: 500 },
-    );
+    return handleApiError(error, "fetching device events");
   }
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import type { HeartbeatRequest, HeartbeatResponse } from "@/types";
 import { requireAuth, AuthError } from "@/lib/auth";
+import { handleApiError } from "@/lib/utils/server";
 
 export async function POST(request: NextRequest) {
   try {
@@ -61,7 +62,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error("Heartbeat failed:", error);
-    return NextResponse.json({ error: "Heartbeat failed" }, { status: 500 });
+    return handleApiError(error, "recording heartbeat");
   }
 }

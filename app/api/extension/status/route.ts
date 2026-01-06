@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import type { ExtensionStatusRequest, ExtensionStatusResponse } from "@/types";
 import { requireAuth, AuthError } from "@/lib/auth";
 import { v4 as uuidv4 } from "uuid";
+import { handleApiError } from "@/lib/utils/server";
 
 export async function POST(request: NextRequest) {
   try {
@@ -67,10 +68,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error("Extension status report failed:", error);
-    return NextResponse.json(
-      { error: "Extension status report failed" },
-      { status: 500 },
-    );
+    return handleApiError(error, "reporting extension status");
   }
 }

@@ -11,6 +11,7 @@ import {
   decodeSeverity,
   decodeComplianceEventDetails,
 } from "@/types";
+import { handleApiError } from "@/lib/utils/server";
 
 export async function GET(
   request: NextRequest,
@@ -162,10 +163,6 @@ export async function GET(
 
     return NextResponse.json(auditTrail);
   } catch (error) {
-    console.error("Error fetching device audit trail:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch device audit trail" },
-      { status: 500 }
-    );
+    return handleApiError(error, "fetching device audit trail");
   }
 }

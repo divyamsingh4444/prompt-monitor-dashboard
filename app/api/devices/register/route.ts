@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import type { RegisterDeviceRequest, RegisterDeviceResponse } from "@/types";
 import { v4 as uuidv4 } from "uuid";
+import { handleApiError } from "@/lib/utils/server";
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,7 +14,7 @@ export async function POST(request: NextRequest) {
         {
           error: "Missing required fields: device_id, public_key_pem, hostname",
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest) {
     } - Hostname: ${body.hostname} | OS: ${
       body.os || "Unknown"
     } | IPs: ${JSON.stringify(body.ips || [])} | Browsers: ${JSON.stringify(
-      body.browsers || [],
+      body.browsers || []
     )}`;
 
     const { error: eventError } = await supabase.from("device_events").insert({
@@ -100,10 +101,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error("Device registration failed:", error);
-    return NextResponse.json(
-      { error: "Device registration failed" },
-      { status: 500 },
-    );
+    return handleApiError(error, "registering device");
   }
 }

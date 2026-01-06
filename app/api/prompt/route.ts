@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import type { CapturePromptRequest, CapturePromptResponse } from "@/types";
 import { requireAuth, AuthError } from "@/lib/auth";
+import { handleApiError } from "@/lib/utils/server";
 
 export async function POST(request: NextRequest) {
   try {
@@ -72,10 +73,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error("Prompt capture failed:", error);
-    return NextResponse.json(
-      { error: "Prompt capture failed" },
-      { status: 500 },
-    );
+    return handleApiError(error, "capturing prompt");
   }
 }

@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import type { Device, PromptCount, DatabaseDevice } from "@/types";
 import { DeviceStatus } from "@/types";
 import { decodeStringArray } from "@/types";
+import { handleApiError } from "@/lib/utils/server";
 
 export async function GET(request: NextRequest) {
   try {
@@ -115,10 +116,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(devices);
   } catch (error) {
-    console.error("Error fetching devices:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch devices" },
-      { status: 500 },
-    );
+    return handleApiError(error, "fetching devices");
   }
 }

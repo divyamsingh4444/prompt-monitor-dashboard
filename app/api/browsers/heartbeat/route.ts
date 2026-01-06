@@ -5,6 +5,7 @@ import type {
   BrowserHeartbeatResponse,
 } from "@/types";
 import { requireAuth, AuthError } from "@/lib/auth";
+import { handleApiError } from "@/lib/utils/server";
 
 export async function POST(request: NextRequest) {
   try {
@@ -64,10 +65,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error("Browser heartbeat failed:", error);
-    return NextResponse.json(
-      { error: "Browser heartbeat failed" },
-      { status: 500 }
-    );
+    return handleApiError(error, "recording browser heartbeat");
   }
 }

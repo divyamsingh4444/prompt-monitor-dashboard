@@ -35,6 +35,7 @@ export default function DeviceDetailPage({
   const [device, setDevice] = useState<Device | null>(null);
   const [auditTrail, setAuditTrail] = useState<AuditTrailItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   const [modalData, setModalData] = useState<{
     open: boolean;
@@ -48,6 +49,7 @@ export default function DeviceDetailPage({
 
   const fetchDeviceData = useCallback(async () => {
     try {
+      setError(null);
       // Get device and unified audit trail
       const [deviceData, auditTrailData] = await Promise.all([
         apiClient.getDevice(id),
@@ -56,14 +58,20 @@ export default function DeviceDetailPage({
 
       setDevice(deviceData);
       setAuditTrail(auditTrailData);
+      setLoading(false);
     } catch (error: unknown) {
+      setLoading(false);
+      // Log error for debugging
       if (error instanceof ApiError) {
         console.error(`API Error ${error.status}:`, error.message);
+        setError(error);
+      } else if (error instanceof Error) {
+        console.error("[v0] Device detail fetch failed:", error);
+        setError(error);
       } else {
         console.error("[v0] Device detail fetch failed:", error);
+        setError(new Error("Failed to fetch device data"));
       }
-    } finally {
-      setLoading(false);
     }
   }, [id]);
 
@@ -118,6 +126,11 @@ export default function DeviceDetailPage({
   useEffect(() => {
     fetchDeviceData();
   }, [fetchDeviceData]);
+
+  // Show error UI if error occurred (for async errors)
+  if (error) {
+    throw error; // This will trigger the error boundary
+  }
 
   if (loading || !device) {
     return (

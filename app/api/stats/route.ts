@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { handleApiError } from "@/lib/utils/server";
 
 export async function GET() {
   try {
@@ -45,10 +46,6 @@ export async function GET() {
       prompts_today: promptsToday || 0,
     });
   } catch (error) {
-    console.error("Error fetching dashboard stats:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch dashboard stats" },
-      { status: 500 },
-    );
+    return handleApiError(error, "fetching dashboard stats");
   }
 }

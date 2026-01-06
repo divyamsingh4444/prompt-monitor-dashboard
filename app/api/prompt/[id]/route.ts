@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import type { Prompt } from "@/types";
+import { handleApiError } from "@/lib/utils/server";
 
 export async function GET(
   request: NextRequest,
@@ -16,12 +17,6 @@ export async function GET(
       .single();
 
     if (error) {
-      if (error.code === "PGRST116") {
-        return NextResponse.json(
-          { error: "Prompt not found" },
-          { status: 404 },
-        );
-      }
       throw error;
     }
 
@@ -41,10 +36,6 @@ export async function GET(
 
     return NextResponse.json(prompt);
   } catch (error) {
-    console.error("Error fetching prompt:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch prompt" },
-      { status: 500 },
-    );
+    return handleApiError(error, "fetching prompt");
   }
 }

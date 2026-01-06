@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { handleApiError } from "@/lib/utils/server";
 
 export async function GET() {
   try {
@@ -16,10 +17,6 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error("Error loading OpenAPI spec:", error);
-    return NextResponse.json(
-      { error: "Failed to load API specification" },
-      { status: 500 },
-    );
+    return handleApiError(error, "loading OpenAPI specification");
   }
 }

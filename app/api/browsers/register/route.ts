@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import type { RegisterBrowserRequest, RegisterBrowserResponse } from "@/types";
 import { requireAuth, AuthError } from "@/lib/auth";
 import { v4 as uuidv4 } from "uuid";
+import { handleApiError } from "@/lib/utils/server";
 
 export async function POST(request: NextRequest) {
   try {
@@ -154,10 +155,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error("Browser registration failed:", error);
-    return NextResponse.json(
-      { error: "Browser registration failed" },
-      { status: 500 }
-    );
+    return handleApiError(error, "registering browser");
   }
 }

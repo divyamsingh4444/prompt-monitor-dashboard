@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import type { ComplianceEventRequest, ComplianceEventResponse } from "@/types";
 import { requireAuth, AuthError } from "@/lib/auth";
 import { v4 as uuidv4 } from "uuid";
+import { handleApiError } from "@/lib/utils/server";
 
 export async function POST(request: NextRequest) {
   try {
@@ -66,10 +67,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error("Compliance event report failed:", error);
-    return NextResponse.json(
-      { error: "Compliance event report failed" },
-      { status: 500 }
-    );
+    return handleApiError(error, "reporting compliance event");
   }
 }

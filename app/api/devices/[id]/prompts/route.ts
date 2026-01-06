@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import type { Prompt, DatabasePrompt } from "@/types";
+import { handleApiError } from "@/lib/utils/server";
 
 export async function GET(
   request: NextRequest,
@@ -33,10 +34,6 @@ export async function GET(
 
     return NextResponse.json(prompts);
   } catch (error) {
-    console.error("Error fetching device prompts:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch device prompts" },
-      { status: 500 },
-    );
+    return handleApiError(error, "fetching device prompts");
   }
 }
